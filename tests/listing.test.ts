@@ -68,4 +68,36 @@ describe('Listing Tools Input Schema', () => {
             }
         });
     });
+
+    describe('upload_store_image', () => {
+        let schema: z.ZodObject<any>;
+
+        beforeAll(() => {
+            const tool = registeredTools.get('upload_store_image');
+            schema = z.object(tool.config.inputSchema);
+        });
+
+        it('should validate correct inputs', () => {
+            const result = schema.safeParse({
+                editId: 'edit-123',
+                language: 'en-US',
+                imageType: 'icon',
+                imagePath: '/path/to/icon.png',
+            });
+            expect(result.success).toBe(true);
+        });
+
+        it('should reject invalid image types', () => {
+            const result = schema.safeParse({
+                editId: 'edit-123',
+                language: 'en-US',
+                imageType: 'invalid-type',
+                imagePath: '/path/to/icon.png',
+            });
+            expect(result.success).toBe(false);
+            if (!result.success) {
+                expect(result.error.errors[0].message).toContain('Invalid enum value');
+            }
+        });
+    });
 });

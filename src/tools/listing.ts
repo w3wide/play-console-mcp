@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { getAuth } from '../auth.js';
 import { getPackageName, wrapError, wrapJson } from '../utils.js';
+import * as fs from 'fs';
 
 export const registerListingTools = (server: any) => {
     server.registerTool(
@@ -104,6 +105,203 @@ export const registerListingTools = (server: any) => {
                     },
                 });
                 return wrapJson({ status: 'success', message: 'Successfully updated Data Safety declaration.' });
+            } catch (e) {
+                return wrapError(e);
+            }
+        }
+    );
+
+    server.registerTool(
+        'upload_store_image',
+        {
+            description:
+                'Upload a new store listing asset (e.g. app icon, feature graphic, screenshots) to an active edit session. The target file path is validated before uploading.',
+            inputSchema: {
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
+                editId: z.string().describe('Active edit ID.'),
+                language: z.string().describe('Language code (e.g. en-US).'),
+                imageType: z
+                    .enum([
+                        'icon',
+                        'featureGraphic',
+                        'promoGraphic',
+                        'phoneScreenshots',
+                        'sevenInchScreenshots',
+                        'tenInchScreenshots',
+                        'tvScreenshots',
+                        'wearScreenshots',
+                        'tvBanner',
+                    ])
+                    .describe('Type of the image asset.'),
+                imagePath: z.string().describe('Absolute path to the local image file (PNG/JPG).'),
+            },
+        },
+        async ({ packageName, editId, language, imageType, imagePath }: any) => {
+            try {
+                if (!fs.existsSync(imagePath)) {
+                    throw new Error(`Image file not found at path: ${imagePath}`);
+                }
+                const stat = fs.statSync(imagePath);
+                if (!stat.isFile()) {
+                    throw new Error(`Path is not a file: ${imagePath}`);
+                }
+                const pkg = getPackageName(packageName);
+                const { publisher } = await getAuth();
+                const res = await publisher.edits.images.upload({
+                    packageName: pkg,
+                    editId,
+                    language,
+                    imageType,
+                    media: {
+                        mimeType: imagePath.endsWith('.png') ? 'image/png' : 'image/jpeg',
+                        body: fs.createReadStream(imagePath),
+                    },
+                });
+                return wrapJson(res.data);
+            } catch (e) {
+                return wrapError(e);
+            }
+        }
+    );
+
+    server.registerTool(
+        'delete_store_image',
+        {
+            description: 'Delete a specific store listing image asset from the active edit session by its image ID.',
+            inputSchema: {
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
+                editId: z.string().describe('Active edit ID.'),
+                language: z.string().describe('Language code.'),
+                imageType: z
+                    .enum([
+                        'icon',
+                        'featureGraphic',
+                        'promoGraphic',
+                        'phoneScreenshots',
+                        'sevenInchScreenshots',
+                        'tenInchScreenshots',
+                        'tvScreenshots',
+                        'wearScreenshots',
+                        'tvBanner',
+                    ])
+                    .describe('Type of the image asset.'),
+                imageId: z.string().describe('The unique ID of the image to delete.'),
+            },
+        },
+        async ({ packageName, editId, language, imageType, imageId }: any) => {
+            try {
+                const pkg = getPackageName(packageName);
+                const { publisher } = await getAuth();
+                await publisher.edits.images.delete({
+                    packageName: pkg,
+                    editId,
+                    language,
+                    imageType,
+                    imageId,
+                });
+                return wrapJson({ status: 'success', message: `Image ${imageId} successfully deleted.` });
+            } catch (e) {
+                return wrapError(e);
+            }
+        }
+    );
+
+    server.registerTool(
+        'delete_all_store_images',
+        {
+            description:
+                'Delete all store listing image assets of a specific type (e.g. all phone screenshots) from the active edit session.',
+            inputSchema: {
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
+                editId: z.string().describe('Active edit ID.'),
+                language: z.string().describe('Language code.'),
+                imageType: z
+                    .enum([
+                        'icon',
+                        'featureGraphic',
+                        'promoGraphic',
+                        'phoneScreenshots',
+                        'sevenInchScreenshots',
+                        'tenInchScreenshots',
+                        'tvScreenshots',
+                        'wearScreenshots',
+                        'tvBanner',
+                    ])
+                    .describe('Type of the image assets to delete.'),
+            },
+        },
+        async ({ packageName, editId, language, imageType }: any) => {
+            try {
+                const pkg = getPackageName(packageName);
+                const { publisher } = await getAuth();
+                const res = await publisher.edits.images.deleteall({
+                    packageName: pkg,
+                    editId,
+                    language,
+                    imageType,
+                });
+                return wrapJson(res.data);
+            } catch (e) {
+                return wrapError(e);
+            }
+        }
+    );
+
+    server.registerTool(
+        'list_store_images',
+        {
+            description:
+                'List all uploaded store listing image assets of a specific type for a language in the active edit session.',
+            inputSchema: {
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
+                editId: z.string().describe('Active edit ID.'),
+                language: z.string().describe('Language code.'),
+                imageType: z
+                    .enum([
+                        'icon',
+                        'featureGraphic',
+                        'promoGraphic',
+                        'phoneScreenshots',
+                        'sevenInchScreenshots',
+                        'tenInchScreenshots',
+                        'tvScreenshots',
+                        'wearScreenshots',
+                        'tvBanner',
+                    ])
+                    .describe('Type of the image assets to list.'),
+            },
+        },
+        async ({ packageName, editId, language, imageType }: any) => {
+            try {
+                const pkg = getPackageName(packageName);
+                const { publisher } = await getAuth();
+                const res = await publisher.edits.images.list({
+                    packageName: pkg,
+                    editId,
+                    language,
+                    imageType,
+                });
+                return wrapJson(res.data);
             } catch (e) {
                 return wrapError(e);
             }
