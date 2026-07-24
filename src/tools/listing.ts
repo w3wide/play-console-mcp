@@ -6,9 +6,15 @@ export const registerListingTools = (server: any) => {
     server.registerTool(
         'get_store_listing',
         {
-            description: 'Get store listing texts (title, descriptions) for a specific language.',
+            description:
+                'Retrieve localized store listing metadata (title, short description, and full description) for a specific language code within the active edit session.',
             inputSchema: {
-                packageName: z.string().optional().describe('App package name.'),
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
                 editId: z.string().describe('Active edit ID.'),
                 language: z.string().describe('Language code (e.g., en-US, es-ES).'),
             },
@@ -32,9 +38,15 @@ export const registerListingTools = (server: any) => {
     server.registerTool(
         'update_store_listing',
         {
-            description: 'Update store listing texts (title, fullDescription, shortDescription).',
+            description:
+                'Update localized store listing texts (title, short description, and full description) for a specific language code within the active edit session.',
             inputSchema: {
-                packageName: z.string().optional().describe('App package name.'),
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
                 editId: z.string().describe('Active edit ID.'),
                 language: z.string().describe('Language code.'),
                 title: z.string().optional().describe('App title (max 50 chars).'),
@@ -66,9 +78,15 @@ export const registerListingTools = (server: any) => {
     server.registerTool(
         'update_data_safety',
         {
-            description: 'Update Data Safety declaration. Advanced users only.',
+            description:
+                "Upload and update the app's Data Safety declaration using raw CSV content. (Advanced usage only).",
             inputSchema: {
-                packageName: z.string().optional().describe('App package name.'),
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
                 safetyLabelsCsv: z.string().describe('The Data Safety CSV content.'),
             },
         },
@@ -97,9 +115,14 @@ export const registerMonetizationTools = (server: any) => {
     server.registerTool(
         'list_inapp_products',
         {
-            description: 'List managed in-app products (one-time purchases).',
+            description: 'List all managed in-app products (one-time purchases) catalog definitions for the app.',
             inputSchema: {
-                packageName: z.string().optional().describe('App package name.'),
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
             },
         },
         async ({ packageName }: any) => {
@@ -117,9 +140,14 @@ export const registerMonetizationTools = (server: any) => {
     server.registerTool(
         'list_subscriptions',
         {
-            description: 'List in-app subscriptions (using latest v3 monetization API).',
+            description: 'List all active and draft in-app subscription catalog definitions configured for the app.',
             inputSchema: {
-                packageName: z.string().optional().describe('App package name.'),
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
             },
         },
         async ({ packageName }: any) => {

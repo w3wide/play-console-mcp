@@ -6,9 +6,15 @@ export const registerReviewTools = (server: any) => {
     server.registerTool(
         'list_reviews',
         {
-            description: 'List recent reviews for an app. Returns review IDs, ratings, comments, and device info.',
+            description:
+                'Fetch a list of recent user reviews for the specified app. Returns ratings, comments, device details, and pagination metadata.',
             inputSchema: {
-                packageName: z.string().optional().describe('App package name. Uses DEFAULT_PACKAGE_NAME if omitted.'),
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
                 maxResults: z.number().int().min(1).max(100).optional().default(10),
                 startIndex: z.number().int().optional().default(0),
                 token: z.string().optional().describe('Pagination token from previous call.'),
@@ -34,9 +40,14 @@ export const registerReviewTools = (server: any) => {
     server.registerTool(
         'get_review',
         {
-            description: 'Get details of a single review by its ID.',
+            description: 'Retrieve details of a single user review by its unique review ID.',
             inputSchema: {
-                packageName: z.string().optional().describe('App package name.'),
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
                 reviewId: z.string().describe('The ID of the review to fetch.'),
             },
         },
@@ -58,9 +69,15 @@ export const registerReviewTools = (server: any) => {
     server.registerTool(
         'reply_review',
         {
-            description: 'Reply to a specific review. If a reply already exists, it will be updated.',
+            description:
+                'Reply to a user review. If a reply already exists for the review, it will be overwritten and updated. Reply character limit is 350.',
             inputSchema: {
-                packageName: z.string().optional().describe('App package name.'),
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
                 reviewId: z.string().describe('The ID of the review to reply to.'),
                 replyText: z.string().min(1).max(350).describe('The text of the reply (max 350 chars).'),
             },

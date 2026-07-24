@@ -7,9 +7,15 @@ export const registerPublishingTools = (server: any) => {
     server.registerTool(
         'create_edit',
         {
-            description: 'Start a new edit for app publishing/store listing updates. Edits expire after 48 hours.',
+            description:
+                'Initialize a new draft edit transaction session for app updates or publishing. The returned edit ID is required for all other publishing, listing, and track operations. Edits expire after 48 hours.',
             inputSchema: {
-                packageName: z.string().optional().describe('App package name.'),
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
             },
         },
         async ({ packageName }: any) => {
@@ -27,9 +33,15 @@ export const registerPublishingTools = (server: any) => {
     server.registerTool(
         'upload_aab',
         {
-            description: 'Upload an Android App Bundle (AAB) to an active edit.',
+            description:
+                'Upload an Android App Bundle (AAB) binary to an active edit session. The target file path is validated before uploading.',
             inputSchema: {
-                packageName: z.string().optional().describe('App package name.'),
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
                 editId: z.string().describe('Active edit ID (from create_edit).'),
                 aabPath: z.string().describe('Absolute path to the .aab file.'),
             },
@@ -63,9 +75,15 @@ export const registerPublishingTools = (server: any) => {
     server.registerTool(
         'assign_track',
         {
-            description: 'Assign an uploaded bundle/apk to a track (production, beta, alpha, internal).',
+            description:
+                'Assign an uploaded version code to a release track (such as production, beta, alpha, or internal) within the active edit session.',
             inputSchema: {
-                packageName: z.string().optional().describe('App package name.'),
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
                 editId: z.string().describe('Active edit ID.'),
                 track: z.string().describe('Track name (e.g., production, beta).'),
                 versionCode: z.number().int().describe('The version code of the uploaded APK/AAB.'),
@@ -107,9 +125,14 @@ export const registerPublishingTools = (server: any) => {
         'commit_edit',
         {
             description:
-                'Commit an active edit to save and apply all changes. This is when changes go live or to review.',
+                'Commit all changes staged in the active edit session to make them live or submit them for store review.',
             inputSchema: {
-                packageName: z.string().optional().describe('App package name.'),
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
                 editId: z.string().describe('Active edit ID.'),
             },
         },
