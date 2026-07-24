@@ -1,21 +1,37 @@
 import { google } from 'googleapis';
 import * as dotenv from 'dotenv';
+
 dotenv.config();
 
-const SCOPES = ['https://www.googleapis.com/auth/androidpublisher'];
+const SCOPES = [
+    'https://www.googleapis.com/auth/androidpublisher',
+    'https://www.googleapis.com/auth/playdeveloperreporting',
+];
 
-export async function getAuthClient() {
-  // This automatically uses Application Default Credentials (ADC)
-  // 1. Checks GOOGLE_APPLICATION_CREDENTIALS env var
-  // 2. Checks well-known location for 'gcloud auth application-default login'
-  // 3. Checks Metadata server (if on Google Cloud)
-  const auth = new google.auth.GoogleAuth({
-    scopes: SCOPES,
-  });
-  
-  const authClient = await auth.getClient();
-  return google.androidpublisher({
-    version: 'v3',
-    auth: authClient as any,
-  });
+/**
+ * Gets a Google Auth client based on environment variables.
+ */
+export async function getAuth() {
+    const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+
+    let auth: any;
+
+    if (serviceAccountJson) {
+        const credentials = JSON.parse(serviceAccountJson);
+        auth = new google.auth.GoogleAuth({
+            credentials,
+            scopes: SCOPES,
+        });
+    } else {
+        auth = new google.auth.GoogleAuth({
+            scopes: SCOPES,
+        });
+    }
+
+    const authClient = await auth.getClient();
+    return {
+        publisher: google.androidpublisher({ version: 'v3', auth: authClient as any }),
+        reporting: google.playdeveloperreporting({ version: 'v1beta1', auth: authClient as any }),
+        authClient,
+    };
 }
