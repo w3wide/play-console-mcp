@@ -202,4 +202,98 @@ export const registerPublishingTools = (server: any) => {
             }
         }
     );
+
+    server.registerTool(
+        'validate_edit',
+        {
+            description:
+                'Validate the active edit session before committing. Checks that all staged changes are complete and consistent. Call this before commit_edit to avoid failed submissions.',
+            inputSchema: {
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
+                editId: z.string().describe('Active edit ID to validate.'),
+            },
+        },
+        async ({ packageName, editId }: any) => {
+            try {
+                const pkg = getPackageName(packageName);
+                const { publisher } = await getAuth();
+                const res = await publisher.edits.validate({ packageName: pkg, editId });
+                return wrapJson(res.data);
+            } catch (e) {
+                return wrapError(e);
+            }
+        }
+    );
+
+    server.registerTool(
+        'get_app_details',
+        {
+            description:
+                'Retrieve app-wide details such as default language, contact email, website, and phone number from the active edit session.',
+            inputSchema: {
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
+                editId: z.string().describe('Active edit ID.'),
+            },
+        },
+        async ({ packageName, editId }: any) => {
+            try {
+                const pkg = getPackageName(packageName);
+                const { publisher } = await getAuth();
+                const res = await publisher.edits.details.get({ packageName: pkg, editId });
+                return wrapJson(res.data);
+            } catch (e) {
+                return wrapError(e);
+            }
+        }
+    );
+
+    server.registerTool(
+        'update_app_details',
+        {
+            description:
+                'Update app-wide contact details (default language, contact email, phone, website) in the active edit session.',
+            inputSchema: {
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
+                editId: z.string().describe('Active edit ID.'),
+                defaultLanguage: z.string().optional().describe('Default language code (e.g. en-US).'),
+                contactEmail: z.string().email().optional().describe('Developer contact email address.'),
+                contactPhone: z.string().optional().describe('Developer contact phone number.'),
+                contactWebsite: z.string().url().optional().describe('Developer contact website URL.'),
+            },
+        },
+        async ({ packageName, editId, defaultLanguage, contactEmail, contactPhone, contactWebsite }: any) => {
+            try {
+                const pkg = getPackageName(packageName);
+                const { publisher } = await getAuth();
+                const res = await publisher.edits.details.update({
+                    packageName: pkg,
+                    editId,
+                    requestBody: {
+                        defaultLanguage,
+                        contactEmail,
+                        contactPhone,
+                        contactWebsite,
+                    },
+                });
+                return wrapJson(res.data);
+            } catch (e) {
+                return wrapError(e);
+            }
+        }
+    );
 };

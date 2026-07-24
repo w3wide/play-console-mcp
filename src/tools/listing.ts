@@ -307,6 +307,33 @@ export const registerListingTools = (server: any) => {
             }
         }
     );
+
+    server.registerTool(
+        'list_all_listings',
+        {
+            description:
+                'List store listing metadata for all configured languages in the active edit session. Useful for auditing all localized titles and descriptions at once.',
+            inputSchema: {
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
+                editId: z.string().describe('Active edit ID.'),
+            },
+        },
+        async ({ packageName, editId }: any) => {
+            try {
+                const pkg = getPackageName(packageName);
+                const { publisher } = await getAuth();
+                const res = await publisher.edits.listings.list({ packageName: pkg, editId });
+                return wrapJson(res.data);
+            } catch (e) {
+                return wrapError(e);
+            }
+        }
+    );
 };
 
 export const registerMonetizationTools = (server: any) => {
