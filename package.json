@@ -13,7 +13,7 @@
   "homepage": "https://github.com/w3wide/play-console-mcp#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/w3wide/play-console-mcp.git"
+    "url": "git+https://github.com/w3wide/play-console-mcp.git"
   },
   "bugs": {
     "url": "https://github.com/w3wide/play-console-mcp/issues"
