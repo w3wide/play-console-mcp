@@ -8,8 +8,13 @@ import { registerListingTools, registerMonetizationTools } from './tools/listing
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
+import { createRequire } from 'module';
 
 dotenv.config();
+
+const require = createRequire(import.meta.url);
+const pkg = require('../package.json');
+const version = pkg.version;
 
 let shouldSetup = false;
 const args = process.argv.slice(2);
@@ -26,6 +31,7 @@ Options:
   -k, --key-file <path|json>   Path to Google Service Account JSON key file or raw JSON content.
   -p, --package-name <name>    Default app package name to use if omitted in tool calls.
   -s, --setup                  Verify configurations and test connectivity.
+  -v, --version                Print the version of the MCP server.
   -h, --help                   Show this help message.
 
 Environment Variables:
@@ -33,6 +39,9 @@ Environment Variables:
   GOOGLE_APPLICATION_CREDENTIALS Path to service account key file.
   DEFAULT_PACKAGE_NAME          Default app package name.
 `);
+        process.exit(0);
+    } else if (arg === '--version' || arg === '-v') {
+        console.log(version);
         process.exit(0);
     } else if (arg === '--key-file' || arg === '-k') {
         const val = args[++i];
@@ -159,7 +168,7 @@ if (shouldSetup) {
 const server = new McpServer(
     {
         name: 'Play Console MCP Server',
-        version: '2.0.0',
+        version: version,
     },
     {
         instructions: `
