@@ -15,7 +15,10 @@
 
 /.idea
 /build
-package-lock.json
+skills-lock.json
+.agents/
+.vscode/
+.DS_Store
 
 ### Node template
 # Logs
