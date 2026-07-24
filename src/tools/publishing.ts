@@ -36,6 +36,13 @@ export const registerPublishingTools = (server: any) => {
         },
         async ({ packageName, editId, aabPath }: any) => {
             try {
+                if (!fs.existsSync(aabPath)) {
+                    throw new Error(`Android App Bundle file not found at path: ${aabPath}`);
+                }
+                const stat = fs.statSync(aabPath);
+                if (!stat.isFile()) {
+                    throw new Error(`Path is not a file: ${aabPath}`);
+                }
                 const pkg = getPackageName(packageName);
                 const { publisher } = await getAuth();
                 const res = await publisher.edits.bundles.upload({
