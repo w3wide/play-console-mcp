@@ -1,6 +1,6 @@
 {
   "name": "@w3wide/play-console-mcp",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Google Play Console MCP Server - Manage app releases, reply to reviews, query Android Vitals (Crashes/ANRs), and update store listings from your AI agent.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -15,7 +15,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && chmod +x build/index.js",
     "start": "node build/index.js",
     "dev": "ts-node-esm src/index.ts",
     "prepublishOnly": "npm run build"
