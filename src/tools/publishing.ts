@@ -147,4 +147,59 @@ export const registerPublishingTools = (server: any) => {
             }
         }
     );
+
+    server.registerTool(
+        'get_track',
+        {
+            description:
+                'Retrieve release track details (releases, rollout percentages, version codes) for a specific track (e.g. production, beta, alpha, internal) in the active edit session.',
+            inputSchema: {
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
+                editId: z.string().describe('Active edit ID.'),
+                track: z.string().describe('Track name (e.g., production, beta, alpha, internal).'),
+            },
+        },
+        async ({ packageName, editId, track }: any) => {
+            try {
+                const pkg = getPackageName(packageName);
+                const { publisher } = await getAuth();
+                const res = await publisher.edits.tracks.get({ packageName: pkg, editId, track });
+                return wrapJson(res.data);
+            } catch (e) {
+                return wrapError(e);
+            }
+        }
+    );
+
+    server.registerTool(
+        'list_tracks',
+        {
+            description:
+                'List all release tracks and their active/draft releases configured in the active edit session.',
+            inputSchema: {
+                packageName: z
+                    .string()
+                    .optional()
+                    .describe(
+                        'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
+                    ),
+                editId: z.string().describe('Active edit ID.'),
+            },
+        },
+        async ({ packageName, editId }: any) => {
+            try {
+                const pkg = getPackageName(packageName);
+                const { publisher } = await getAuth();
+                const res = await publisher.edits.tracks.list({ packageName: pkg, editId });
+                return wrapJson(res.data);
+            } catch (e) {
+                return wrapError(e);
+            }
+        }
+    );
 };
