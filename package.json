@@ -1,13 +1,13 @@
 {
   "name": "@w3wide/play-console-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Google Play Console MCP Server - Manage app releases, reply to reviews, query Android Vitals (Crashes/ANRs), and update store listings from your AI agent.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "type": "module",
   "license": "MIT",
   "bin": {
-    "play-console-mcp": "./build/index.js"
+    "play-console-mcp": "build/index.js"
   },
   "files": [
     "build",
