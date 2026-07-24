@@ -39,7 +39,13 @@ Update listing content and query products.
 1. **Google Cloud Project**: Enable the following APIs:
    * Google Play Developer API
    * Google Play Developer Reporting API
-2. **Service Account**: Create a service account in your Google Cloud Project, download the JSON key file, and invite the service account email to your Google Play Console under "Users and permissions" with appropriate access (e.g. Manage Releases, View App Information).
+2. **Service Account**: Create a service account, download its JSON key file, and link it in the Google Play Console under **Users and permissions**.
+   * 👉 For step-by-step instructions on setting up credentials, scopes, and Play Store permissions, see [SETUP_GUIDE.md](SETUP_GUIDE.md).
+
+Once set up, you can run the built-in configuration helper to check your credentials and connection:
+```bash
+npx @w3wide/play-console-mcp --key-file /path/to/key.json --package-name com.your.app.package --setup
+```
 
 ## Configuration
 
