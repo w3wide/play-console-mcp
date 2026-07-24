@@ -49,9 +49,9 @@ export const registerListingTools = (server: any) => {
                     ),
                 editId: z.string().describe('Active edit ID.'),
                 language: z.string().describe('Language code.'),
-                title: z.string().optional().describe('App title (max 50 chars).'),
-                shortDescription: z.string().optional().describe('App short description (max 80 chars).'),
-                fullDescription: z.string().optional().describe('App full description (max 4000 chars).'),
+                title: z.string().max(50).optional().describe('App title (max 50 chars).'),
+                shortDescription: z.string().max(80).optional().describe('App short description (max 80 chars).'),
+                fullDescription: z.string().max(4000).optional().describe('App full description (max 4000 chars).'),
             },
         },
         async ({ packageName, editId, language, title, shortDescription, fullDescription }: any) => {
