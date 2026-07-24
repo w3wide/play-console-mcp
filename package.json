@@ -1,18 +1,61 @@
 {
   "name": "@w3wide/play-console-mcp",
   "version": "1.0.4",
-  "description": "Google Play Console MCP Server - Manage app releases, reply to reviews, query Android Vitals (Crashes/ANRs), and update store listings from your AI agent.",
+  "description": "MCP server for Google Play Console — manage app releases, reply to reviews, query Android Vitals (crashes/ANRs), update store listings, upload screenshots, and manage release tracks from any AI agent (Claude, Cursor, Copilot).",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "type": "module",
   "license": "MIT",
+  "author": {
+    "name": "w3wide",
+    "url": "https://github.com/w3wide"
+  },
+  "homepage": "https://github.com/w3wide/play-console-mcp#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/w3wide/play-console-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/w3wide/play-console-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "google-play",
+    "play-console",
+    "android",
+    "android-publisher",
+    "google-play-developer-api",
+    "app-release",
+    "play-store",
+    "ai-agent",
+    "claude",
+    "cursor",
+    "llm-tools",
+    "android-vitals",
+    "crash-rate",
+    "anr-rate",
+    "app-reviews",
+    "store-listing",
+    "aab-upload",
+    "release-management",
+    "google-api",
+    "devops",
+    "mobile"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "bin": {
     "play-console-mcp": "build/index.js"
   },
   "files": [
     "build",
     "package.json",
-    "README.md"
+    "README.md",
+    "SETUP_GUIDE.md",
+    "EXAMPLES.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc && chmod +x build/index.js",
