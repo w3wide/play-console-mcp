@@ -1,24 +1,36 @@
 {
-  "name": "play-console-mcp",
+  "name": "@w3wide/play-console-mcp",
   "version": "1.0.0",
   "description": "MCP Server for Google Play Developer Console",
   "main": "build/index.js",
+  "types": "build/index.d.ts",
   "type": "module",
+  "bin": {
+    "play-console-mcp": "./build/index.js"
+  },
+  "files": [
+    "build",
+    "package.json",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "start": "node build/index.js",
-    "dev": "ts-node-esm src/index.ts"
+    "dev": "ts-node-esm src/index.ts",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
-    "dotenv": "^16.4.0",
-    "google-auth-library": "^9.6.0",
-    "googleapis": "^133.0.0",
-    "zod": "^3.22.0"
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "@modelcontextprotocol/ext-apps": "^0.1.0",
+    "dotenv": "^16.4.5",
+    "google-auth-library": "^9.15.0",
+    "googleapis": "^173.0.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^20.14.9",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.0"
+    "typescript": "^5.5.2",
+    "nodemon": "^3.1.4"
   }
 }
