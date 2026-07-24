@@ -29,6 +29,9 @@ export const registerReportingTools = (server: any) => {
                     requestBody: {
                         pageSize,
                         pageToken,
+                        timelineSpec: {
+                            aggregationPeriod: 'DAILY',
+                        },
                     },
                 });
                 return wrapJson(res.data);
@@ -64,6 +67,9 @@ export const registerReportingTools = (server: any) => {
                     requestBody: {
                         pageSize,
                         pageToken,
+                        timelineSpec: {
+                            aggregationPeriod: 'DAILY',
+                        },
                     },
                 });
                 return wrapJson(res.data);
