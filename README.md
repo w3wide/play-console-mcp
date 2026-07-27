@@ -41,6 +41,12 @@ Pre-configured workflows to guide AI agents and users:
 * `review_response_assistant`: Fetch user reviews, filter negative/unanswered feedback, and draft professional replies under 350 characters.
 * `store_listing_optimizer`: Inspect localized store listings and suggest ASO-optimized titles and descriptions.
 
+### Resources
+Read-only URI data context sources for AI agents:
+* `playconsole://apps/{packageName}/details`: Retrieve app contact email, phone, website, and default language.
+* `playconsole://apps/{packageName}/listings/{language}`: Read localized store listing title and descriptions.
+* `playconsole://apps/{packageName}/inapp-products`: Fetch configured in-app products catalog data.
+
 ## Prerequisites
 
 1. **Google Cloud Project**: Enable the following APIs:

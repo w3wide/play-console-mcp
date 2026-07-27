@@ -6,6 +6,7 @@ import { registerPublishingTools } from './tools/publishing.js';
 import { registerReportingTools } from './tools/reporting.js';
 import { registerListingTools, registerMonetizationTools } from './tools/listing.js';
 import { registerPrompts } from './prompts.js';
+import { registerResources } from './resources.js';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -205,13 +206,14 @@ General Guidelines:
     }
 );
 
-// Register all tool & prompt modules
+// Register all tool, prompt & resource modules
 registerReviewTools(server);
 registerPublishingTools(server);
 registerReportingTools(server);
 registerListingTools(server);
 registerMonetizationTools(server);
 registerPrompts(server);
+registerResources(server);
 
 /**
  * Main entry point.
