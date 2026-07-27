@@ -34,6 +34,13 @@ Update listing content and query products.
 * `list_inapp_products`: List one-time purchase catalog products.
 * `list_subscriptions`: List in-app subscription plans.
 
+### Prompts
+Pre-configured workflows to guide AI agents and users:
+* `app_health_audit`: Audit Android Vitals (crashes and ANR rates) and generate a health summary report.
+* `release_preparation`: Interactive step-by-step workflow guide to stage, validate, and commit a release build.
+* `review_response_assistant`: Fetch user reviews, filter negative/unanswered feedback, and draft professional replies under 350 characters.
+* `store_listing_optimizer`: Inspect localized store listings and suggest ASO-optimized titles and descriptions.
+
 ## Prerequisites
 
 1. **Google Cloud Project**: Enable the following APIs:
