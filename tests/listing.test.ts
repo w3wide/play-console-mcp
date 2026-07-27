@@ -40,7 +40,7 @@ describe('Listing Tools Input Schema', () => {
             });
             expect(result.success).toBe(false);
             if (!result.success) {
-                expect(result.error.errors[0].message).toContain('at most 50 character(s)');
+                expect(result.error.issues[0].message).toContain('<=50 characters');
             }
         });
 
@@ -52,7 +52,7 @@ describe('Listing Tools Input Schema', () => {
             });
             expect(result.success).toBe(false);
             if (!result.success) {
-                expect(result.error.errors[0].message).toContain('at most 80 character(s)');
+                expect(result.error.issues[0].message).toContain('<=80 characters');
             }
         });
 
@@ -64,7 +64,7 @@ describe('Listing Tools Input Schema', () => {
             });
             expect(result.success).toBe(false);
             if (!result.success) {
-                expect(result.error.errors[0].message).toContain('at most 4000 character(s)');
+                expect(result.error.issues[0].message).toContain('<=4000 characters');
             }
         });
     });
@@ -96,7 +96,7 @@ describe('Listing Tools Input Schema', () => {
             });
             expect(result.success).toBe(false);
             if (!result.success) {
-                expect(result.error.errors[0].message).toContain('Invalid enum value');
+                expect(result.error.issues[0].message).toContain('Invalid option');
             }
         });
     });
