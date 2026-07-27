@@ -163,7 +163,7 @@ if (shouldSetup) {
  *
  * Provides tools to interact with Google Play Console data via:
  * - Google Play Developer API (v3)
- * - Google Play Developer Reporting API (v1beta1)
+ * - Google Play Developer Reporting API (v1alpha1)
  */
 const server = new McpServer(
     {

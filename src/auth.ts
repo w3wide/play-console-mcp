@@ -31,7 +31,7 @@ export async function getAuth() {
     const authClient = await auth.getClient();
     return {
         publisher: google.androidpublisher({ version: 'v3', auth: authClient as any }),
-        reporting: google.playdeveloperreporting({ version: 'v1beta1', auth: authClient as any }),
+        reporting: google.playdeveloperreporting({ version: 'v1alpha1', auth: authClient as any }),
         authClient,
     };
 }

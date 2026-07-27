@@ -17,21 +17,28 @@ export const registerReportingTools = (server: any) => {
                     ),
                 pageSize: z.number().int().optional().default(10),
                 pageToken: z.string().optional(),
+                filter: z.string().optional().describe('Optional filter expression (AIP-160) e.g. versionCode = 100.'),
+                metrics: z
+                    .array(z.string())
+                    .optional()
+                    .describe('Optional list of metrics to fetch (e.g., ["crashRate", "userPerceivedCrashRate"]).'),
             },
         },
-        async ({ packageName, pageSize, pageToken }: any) => {
+        async ({ packageName, pageSize, pageToken, filter, metrics }: any) => {
             try {
                 const pkg = getPackageName(packageName);
                 const { reporting } = await getAuth();
                 const resourceName = `apps/${pkg}/crashRateMetricSet`;
-                const res = await (reporting.vitals.crashrate as any).query({
+                const res = await reporting.vitals.crashrate.query({
                     name: resourceName,
                     requestBody: {
-                        pageSize,
-                        pageToken,
                         timelineSpec: {
                             aggregationPeriod: 'DAILY',
                         },
+                        pageSize,
+                        pageToken,
+                        filter,
+                        metrics,
                     },
                 });
                 return wrapJson(res.data);
@@ -55,21 +62,28 @@ export const registerReportingTools = (server: any) => {
                     ),
                 pageSize: z.number().int().optional().default(10),
                 pageToken: z.string().optional(),
+                filter: z.string().optional().describe('Optional filter expression (AIP-160) e.g. versionCode = 100.'),
+                metrics: z
+                    .array(z.string())
+                    .optional()
+                    .describe('Optional list of metrics to fetch (e.g., ["anrRate", "userPerceivedAnrRate"]).'),
             },
         },
-        async ({ packageName, pageSize, pageToken }: any) => {
+        async ({ packageName, pageSize, pageToken, filter, metrics }: any) => {
             try {
                 const pkg = getPackageName(packageName);
                 const { reporting } = await getAuth();
                 const resourceName = `apps/${pkg}/anrRateMetricSet`;
-                const res = await (reporting.vitals.anrrate as any).query({
+                const res = await reporting.vitals.anrrate.query({
                     name: resourceName,
                     requestBody: {
-                        pageSize,
-                        pageToken,
                         timelineSpec: {
                             aggregationPeriod: 'DAILY',
                         },
+                        pageSize,
+                        pageToken,
+                        filter,
+                        metrics,
                     },
                 });
                 return wrapJson(res.data);
