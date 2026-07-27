@@ -95,10 +95,7 @@ export const registerListingTools = (server: any) => {
             try {
                 const pkg = getPackageName(packageName);
                 const { publisher } = await getAuth();
-                // Note: the original code had a cast to any for applications.dataSafety
-                // We'll try to use the correct v3 path if possible.
-                // In v3 it might be publisher.applications.dataSafety
-                await (publisher as any).applications.dataSafety({
+                await publisher.applications.dataSafety({
                     packageName: pkg,
                     requestBody: {
                         safetyLabels: safetyLabelsCsv,
@@ -348,13 +345,25 @@ export const registerMonetizationTools = (server: any) => {
                     .describe(
                         'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
                     ),
+                pageSize: z
+                    .number()
+                    .int()
+                    .min(1)
+                    .max(1000)
+                    .optional()
+                    .describe('Maximum number of products to return.'),
+                pageToken: z.string().optional().describe('Pagination token from previous call.'),
             },
         },
-        async ({ packageName }: any) => {
+        async ({ packageName, pageSize, pageToken }: any) => {
             try {
                 const pkg = getPackageName(packageName);
                 const { publisher } = await getAuth();
-                const res = await (publisher as any).monetization.onetimeproducts.list({ packageName: pkg });
+                const res = await publisher.monetization.onetimeproducts.list({
+                    packageName: pkg,
+                    pageSize,
+                    pageToken,
+                });
                 return wrapJson(res.data);
             } catch (e) {
                 return wrapError(e);
@@ -373,14 +382,25 @@ export const registerMonetizationTools = (server: any) => {
                     .describe(
                         'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
                     ),
+                pageSize: z
+                    .number()
+                    .int()
+                    .min(1)
+                    .max(1000)
+                    .optional()
+                    .describe('Maximum number of subscriptions to return.'),
+                pageToken: z.string().optional().describe('Pagination token from previous call.'),
             },
         },
-        async ({ packageName }: any) => {
+        async ({ packageName, pageSize, pageToken }: any) => {
             try {
                 const pkg = getPackageName(packageName);
                 const { publisher } = await getAuth();
-                // Using publisher.monetization.subscriptions for v3
-                const res = await (publisher as any).monetization.subscriptions.list({ packageName: pkg });
+                const res = await publisher.monetization.subscriptions.list({
+                    packageName: pkg,
+                    pageSize,
+                    pageToken,
+                });
                 return wrapJson(res.data);
             } catch (e) {
                 return wrapError(e);
