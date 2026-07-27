@@ -18,9 +18,13 @@ export const registerReviewTools = (server: any) => {
                 maxResults: z.number().int().min(1).max(100).optional().default(10),
                 startIndex: z.number().int().optional().default(0),
                 token: z.string().optional().describe('Pagination token from previous call.'),
+                translationLanguage: z
+                    .string()
+                    .optional()
+                    .describe('Language localization code to translate review content into (e.g. en, es, ja).'),
             },
         },
-        async ({ packageName, maxResults, startIndex, token }: any) => {
+        async ({ packageName, maxResults, startIndex, token, translationLanguage }: any) => {
             try {
                 const pkg = getPackageName(packageName);
                 const { publisher } = await getAuth();
@@ -29,6 +33,7 @@ export const registerReviewTools = (server: any) => {
                     maxResults,
                     startIndex,
                     token,
+                    translationLanguage,
                 });
                 return wrapJson(res.data);
             } catch (e) {
@@ -49,15 +54,20 @@ export const registerReviewTools = (server: any) => {
                         'App package name (e.g. com.example.app). Falls back to the default package name configured via CLI/environment if omitted.'
                     ),
                 reviewId: z.string().describe('The ID of the review to fetch.'),
+                translationLanguage: z
+                    .string()
+                    .optional()
+                    .describe('Language localization code to translate review content into (e.g. en, es, ja).'),
             },
         },
-        async ({ packageName, reviewId }: any) => {
+        async ({ packageName, reviewId, translationLanguage }: any) => {
             try {
                 const pkg = getPackageName(packageName);
                 const { publisher } = await getAuth();
                 const res = await publisher.reviews.get({
                     packageName: pkg,
                     reviewId,
+                    translationLanguage,
                 });
                 return wrapJson(res.data);
             } catch (e) {
