@@ -154,7 +154,7 @@ Add this to your `claude_desktop_config.json`:
 * **SDK**: `@modelcontextprotocol/sdk` (McpServer client)
 * **APIs**:
   * `androidpublisher:v3` (App releases and catalog management)
-  * `playdeveloperreporting:v1beta1` (Android Vitals reporting)
+  * `playdeveloperreporting:v1alpha1` (Android Vitals reporting)
 * **Transport**: Stdio (Standard Input/Output)
 
 ## Security
