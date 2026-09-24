@@ -1,16 +1,33 @@
 #!/usr/bin/env node
-import { StdioServerTransport } from '@modelcontextprotocol/server/stdio';
-import { McpServer } from '@modelcontextprotocol/server';
-import { registerReviewTools } from './tools/reviews.js';
-import { registerPublishingTools } from './tools/publishing.js';
-import { registerReportingTools } from './tools/reporting.js';
-import { registerListingTools, registerMonetizationTools } from './tools/listing.js';
-import { registerPrompts } from './prompts.js';
-import { registerResources } from './resources.js';
+import { Command } from 'commander';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 import { createRequire } from 'module';
+
+import { runMcpServer } from './cli/mcp.js';
+import { runSetupCommand } from './cli/setup.js';
+import {
+    handleCreateEdit,
+    handleUploadAab,
+    handleAssignTrack,
+    handleValidateEdit,
+    handleCommitEdit,
+    handleListTracks,
+    handleGetTrack,
+} from './cli/publishing.js';
+import { handleListReviews, handleGetReview, handleReplyReview } from './cli/reviews.js';
+import { handleQueryCrashRate, handleQueryAnrRate } from './cli/reporting.js';
+import {
+    handleGetStoreListing,
+    handleUpdateStoreListing,
+    handleListAllListings,
+    handleUploadStoreImage,
+    handleDeleteStoreImage,
+    handleDeleteAllStoreImages,
+    handleListStoreImages,
+} from './cli/listing.js';
+import { handleListInAppProducts, handleListSubscriptions } from './cli/monetization.js';
 
 dotenv.config();
 
@@ -18,39 +35,9 @@ const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
 const version = pkg.version;
 
-let shouldSetup = false;
-const args = process.argv.slice(2);
-for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    if (arg === '--help' || arg === '-h') {
-        console.error(`
-Play Console MCP Server
-
-Usage:
-  npx @w3wide/play-console-mcp [options]
-
-Options:
-  -k, --key-file <path|json>   Path to Google Service Account JSON key file or raw JSON content.
-  -p, --package-name <name>    Default app package name to use if omitted in tool calls.
-  -s, --setup                  Verify configurations and test connectivity.
-  -v, --version                Print the version of the MCP server.
-  -h, --help                   Show this help message.
-
-Environment Variables:
-  GOOGLE_SERVICE_ACCOUNT_JSON   Raw JSON credentials.
-  GOOGLE_APPLICATION_CREDENTIALS Path to service account key file.
-  DEFAULT_PACKAGE_NAME          Default app package name.
-`);
-        process.exit(0);
-    } else if (arg === '--version' || arg === '-v') {
-        console.log(version);
-        process.exit(0);
-    } else if (arg === '--key-file' || arg === '-k') {
-        const val = args[++i];
-        if (!val) {
-            console.error('Error: Missing value for --key-file / -k');
-            process.exit(1);
-        }
+function applyGlobalOptions(opts: { keyFile?: string; packageName?: string }) {
+    if (opts.keyFile) {
+        const val = opts.keyFile;
         if (val.trim().startsWith('{')) {
             process.env.GOOGLE_SERVICE_ACCOUNT_JSON = val;
         } else {
@@ -66,168 +53,277 @@ Environment Variables:
                 process.exit(1);
             }
         }
-    } else if (arg === '--package-name' || arg === '-p') {
-        const val = args[++i];
-        if (!val) {
-            console.error('Error: Missing value for --package-name / -p');
-            process.exit(1);
-        }
-        process.env.DEFAULT_PACKAGE_NAME = val;
-    } else if (arg === '--setup' || arg === '-s') {
-        shouldSetup = true;
+    }
+
+    if (opts.packageName) {
+        process.env.DEFAULT_PACKAGE_NAME = opts.packageName;
     }
 }
 
-const runSetup = async () => {
-    console.error('=== Google Play Console MCP Setup Verification ===\n');
+const program = new Command();
 
-    let hasCredentials = false;
-    const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-    const applicationCredentials = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+program
+    .name('play-console')
+    .description('Google Play Console CLI & Stdio MCP Server')
+    .version(version, '-v, --version', 'Print the version of the MCP server')
+    .option('-k, --key-file <pathOrJson>', 'Path to Google Service Account JSON key file or raw JSON content')
+    .option('-p, --package-name <name>', 'Default app package name')
+    .option('--mcp', 'Start the Stdio MCP server for Google Play Console')
+    .hook('preAction', () => {
+        applyGlobalOptions(program.opts());
+    })
+    .action(async () => {
+        await runMcpServer();
+    });
 
-    if (serviceAccountJson) {
-        try {
-            const credentials = JSON.parse(serviceAccountJson);
-            console.error('1. Google Service Account JSON:');
-            console.error('   [SUCCESS] Valid JSON credentials detected.');
-            console.error(`   - Client Email: ${credentials.client_email || 'N/A'}`);
-            console.error(`   - Project ID: ${credentials.project_id || 'N/A'}`);
-            hasCredentials = true;
-        } catch (err: any) {
-            console.error('1. Google Service Account JSON:');
-            console.error(`   [ERROR] Failed to parse GOOGLE_SERVICE_ACCOUNT_JSON: ${err.message}`);
-        }
-    } else if (applicationCredentials) {
-        console.error('1. Google Service Account JSON:');
-        console.error(
-            `   [INFO] Using credentials file from GOOGLE_APPLICATION_CREDENTIALS: ${applicationCredentials}`
-        );
-        try {
-            if (fs.existsSync(applicationCredentials)) {
-                const content = fs.readFileSync(applicationCredentials, 'utf8');
-                const credentials = JSON.parse(content);
-                console.error('   [SUCCESS] Valid JSON credentials file read.');
-                console.error(`   - Client Email: ${credentials.client_email || 'N/A'}`);
-                console.error(`   - Project ID: ${credentials.project_id || 'N/A'}`);
-                hasCredentials = true;
-            } else {
-                console.error(`   [ERROR] Credentials file not found at: ${applicationCredentials}`);
-            }
-        } catch (err: any) {
-            console.error(`   [ERROR] Failed to read/parse credentials file: ${err.message}`);
-        }
-    } else {
-        console.error('1. Google Service Account JSON:');
-        console.error('   [ERROR] No credentials found.');
-        console.error('   Please configure Google Service Account credentials via one of these:');
-        console.error('   - CLI Flag: --key-file / -k <path_to_file.json>');
-        console.error('   - Environment Variable: GOOGLE_SERVICE_ACCOUNT_JSON');
-        console.error('   - Environment Variable: GOOGLE_APPLICATION_CREDENTIALS');
-    }
+program
+    .command('mcp')
+    .description('Start the Stdio MCP server for Google Play Console')
+    .action(async () => {
+        await runMcpServer();
+    });
 
-    console.error('\n2. Default Package Name:');
-    if (process.env.DEFAULT_PACKAGE_NAME) {
-        console.error(`   [SUCCESS] Default package name set to: "${process.env.DEFAULT_PACKAGE_NAME}"`);
-    } else {
-        console.error('   [INFO] No default package name configured.');
-        console.error('   (You will need to pass package name parameter explicitly in each tool call.)');
-    }
+program
+    .command('setup')
+    .description('Verify configurations and test connectivity')
+    .action(async () => {
+        await runSetupCommand();
+    });
 
-    if (hasCredentials) {
-        console.error('\n3. Google OAuth Connectivity & Scopes Check:');
-        console.error('   Authenticating with Google OAuth server...');
-        try {
-            const { getAuth } = await import('./auth.js');
-            const { authClient } = await getAuth();
-            const token = await authClient.getAccessToken();
-            if (token && token.token) {
-                console.error('   [SUCCESS] Authentication token successfully generated!');
-                console.error('   - Scopes allowed: androidpublisher, playdeveloperreporting');
-            } else {
-                console.error('   [ERROR] Failed to fetch access token (empty response).');
-            }
-        } catch (err: any) {
-            console.error(`   [ERROR] Authentication failed: ${err.message}`);
-            console.error('   Double-check that your private key is valid and your system clock is synchronized.');
-        }
-    }
+const edit = program.command('edit').description('Manage Play Console draft edit sessions');
 
-    console.error('\n=== Verification Complete ===');
-};
+edit.command('create')
+    .description('Create a new draft edit session')
+    .action(async () => {
+        await handleCreateEdit({});
+    });
 
-if (shouldSetup) {
-    await runSetup();
-    process.exit(0);
-}
+edit.command('upload-aab')
+    .description('Upload an Android App Bundle (.aab)')
+    .requiredOption('--edit-id <id>', 'Edit session ID')
+    .requiredOption('--aab-path <path>', 'Path to .aab file')
+    .action(async (options) => {
+        await handleUploadAab({ editId: options.editId, aabPath: options.aabPath });
+    });
 
-/**
- * Play Console MCP Server
- *
- * Provides tools to interact with Google Play Console data via:
- * - Google Play Developer API (v3)
- * - Google Play Developer Reporting API (v1alpha1)
- */
-const server = new McpServer(
-    {
-        name: 'Play Console MCP Server',
-        version: version,
-    },
-    {
-        instructions: `
-This server connects to the Google Play Developer APIs to manage apps and monitor performance.
+edit.command('assign-track')
+    .description('Assign version code to a release track')
+    .requiredOption('--edit-id <id>', 'Edit session ID')
+    .requiredOption('--track <name>', 'Track name (production, beta, alpha, internal)')
+    .requiredOption('--version-code <codeOrNumber>', 'Version code')
+    .option('--user-fraction <fraction>', 'User fraction for staged rollout')
+    .option('--status <status>', 'Release status (completed, draft, halted, inProgress)', 'completed')
+    .action(async (options) => {
+        await handleAssignTrack({
+            editId: options.editId,
+            track: options.track,
+            versionCode: parseInt(options.versionCode, 10),
+            userFraction: options.userFraction ? parseFloat(options.userFraction) : undefined,
+            status: options.status,
+        });
+    });
 
-Tool Categories & Guidelines:
+edit.command('validate')
+    .description('Validate a draft edit session')
+    .requiredOption('--edit-id <id>', 'Edit session ID')
+    .action(async (options) => {
+        await handleValidateEdit({ editId: options.editId });
+    });
 
-1. App Vitals & Analytics (Reporting API):
-   - Always use 'query_crash_rate' and 'query_anr_rate' to retrieve stability metrics. Use these tools to perform automated app health checks.
+edit.command('commit')
+    .description('Commit a draft edit session')
+    .requiredOption('--edit-id <id>', 'Edit session ID')
+    .action(async (options) => {
+        await handleCommitEdit({ editId: options.editId });
+    });
 
-2. User Feedback (Reviews API):
-   - Use 'list_reviews' to fetch user reviews, and 'get_review' for detailed inspects.
-   - Use 'reply_review' to respond to reviews. Note: Review replies have a strict 350-character limit.
+const tracks = program.command('tracks').description('Manage release tracks');
 
-3. Publishing & App Store Edits (Edits API):
-   - Creating, staging, or editing app configurations requires an active edit transaction session.
-   - Flow: Initialize an edit session using 'create_edit'. This returns an 'editId' (which expires in 48 hours).
-   - Stage changes using the returned 'editId' with 'upload_aab' (App Bundles), 'update_store_listing' (localized text updates), and 'upload_store_image' / 'delete_store_image' (icons, banner, screenshots).
-   - Use 'list_all_listings' to audit all localized store listings across languages.
-   - Use 'get_app_details' to fetch and 'update_app_details' to modify app-wide contact info (email, phone, website, default language).
-   - Associate the uploaded binaries to a release track using 'assign_track' (with the editId and target track name).
-   - Use 'validate_edit' to verify all staged changes are consistent before finalizing.
-   - Once all edits are completed and verified, call 'commit_edit' with the editId to save, commit, and send the release live or to review.
+tracks
+    .command('list')
+    .description('List all release tracks in active edit session')
+    .requiredOption('--edit-id <id>', 'Edit session ID')
+    .action(async (options) => {
+        await handleListTracks({ editId: options.editId });
+    });
 
-4. Release Tracks & App Status Retrieval:
-   - Use 'list_tracks' to inspect all active release tracks (production, beta, alpha, internal) and see currently active releases.
-   - Use 'get_track' to fetch detailed release notes, rollout percentages, and version codes for a specific track.
-   - Use 'list_inapp_products' and 'list_subscriptions' to query configured catalog offerings.
+tracks
+    .command('get')
+    .description('Get details for a specific release track')
+    .requiredOption('--edit-id <id>', 'Edit session ID')
+    .requiredOption('--track <name>', 'Track name')
+    .action(async (options) => {
+        await handleGetTrack({ editId: options.editId, track: options.track });
+    });
 
-General Guidelines:
-- Always prefer using the 'DEFAULT_PACKAGE_NAME' configured in the environment if the 'packageName' parameter is omitted.
-`,
-    }
-);
+const reviews = program.command('reviews').description('Inspect and reply to user reviews');
 
-// Register all tool, prompt & resource modules
-registerReviewTools(server);
-registerPublishingTools(server);
-registerReportingTools(server);
-registerListingTools(server);
-registerMonetizationTools(server);
-registerPrompts(server);
-registerResources(server);
+reviews
+    .command('list')
+    .description('List recent user reviews')
+    .option('--max-results <number>', 'Maximum results')
+    .option('--start-index <number>', 'Start index')
+    .option('--token <token>', 'Pagination token')
+    .action(async (options) => {
+        await handleListReviews({
+            maxResults: options.maxResults ? parseInt(options.maxResults, 10) : undefined,
+            startIndex: options.startIndex ? parseInt(options.startIndex, 10) : undefined,
+            token: options.token,
+        });
+    });
 
-/**
- * Main entry point.
- * Currently supports Stdio transport for local agents.
- */
-async function run() {
-    try {
-        const transport = new StdioServerTransport();
-        await server.connect(transport);
-        console.error('Play Console MCP Server (v2.0.0) running on stdio');
-    } catch (error) {
-        console.error('Fatal error in Play Console MCP Server:', error);
-        process.exit(1);
-    }
-}
+reviews
+    .command('get')
+    .description('Get specific review by ID')
+    .requiredOption('--review-id <id>', 'Review ID')
+    .action(async (options) => {
+        await handleGetReview({ reviewId: options.reviewId });
+    });
 
-run();
+reviews
+    .command('reply')
+    .description('Reply to a user review')
+    .requiredOption('--review-id <id>', 'Review ID')
+    .requiredOption('--reply-text <text>', 'Reply text (max 350 chars)')
+    .action(async (options) => {
+        await handleReplyReview({ reviewId: options.reviewId, replyText: options.replyText });
+    });
+
+const reporting = program.command('reporting').description('Query Android Vitals reporting metrics');
+
+reporting
+    .command('crash-rate')
+    .description('Query daily crash rate metrics')
+    .option('--start-date <YYYY-MM-DD>', 'Start date')
+    .option('--end-date <YYYY-MM-DD>', 'End date')
+    .action(async (options) => {
+        await handleQueryCrashRate({ startDate: options.startDate, endDate: options.endDate });
+    });
+
+reporting
+    .command('anr-rate')
+    .description('Query daily ANR rate metrics')
+    .option('--start-date <YYYY-MM-DD>', 'Start date')
+    .option('--end-date <YYYY-MM-DD>', 'End date')
+    .action(async (options) => {
+        await handleQueryAnrRate({ startDate: options.startDate, endDate: options.endDate });
+    });
+
+const listing = program.command('listing').description('Manage store listings');
+
+listing
+    .command('get')
+    .description('Get store listing for a language')
+    .requiredOption('--edit-id <id>', 'Edit session ID')
+    .requiredOption('--language <lang>', 'Language code')
+    .action(async (options) => {
+        await handleGetStoreListing({ editId: options.editId, language: options.language });
+    });
+
+listing
+    .command('update')
+    .description('Update store listing text')
+    .requiredOption('--edit-id <id>', 'Edit session ID')
+    .requiredOption('--language <lang>', 'Language code')
+    .option('--title <title>', 'App title')
+    .option('--short-description <desc>', 'Short description')
+    .option('--full-description <desc>', 'Full description')
+    .action(async (options) => {
+        await handleUpdateStoreListing({
+            editId: options.editId,
+            language: options.language,
+            title: options.title,
+            shortDescription: options.shortDescription,
+            fullDescription: options.fullDescription,
+        });
+    });
+
+listing
+    .command('list-all')
+    .description('List all store listings for edit session')
+    .requiredOption('--edit-id <id>', 'Edit session ID')
+    .action(async (options) => {
+        await handleListAllListings({ editId: options.editId });
+    });
+
+const images = program.command('images').description('Manage store listing images');
+
+images
+    .command('upload')
+    .description('Upload store listing image')
+    .requiredOption('--edit-id <id>', 'Edit session ID')
+    .requiredOption('--image-type <type>', 'Image type (icon, featureGraphic, phoneScreenshots, etc.)')
+    .requiredOption('--image-path <path>', 'Path to image file')
+    .requiredOption('--language <lang>', 'Language code')
+    .action(async (options) => {
+        await handleUploadStoreImage({
+            editId: options.editId,
+            imageType: options.imageType,
+            imagePath: options.imagePath,
+            language: options.language,
+        });
+    });
+
+images
+    .command('delete')
+    .description('Delete a store listing image')
+    .requiredOption('--edit-id <id>', 'Edit session ID')
+    .requiredOption('--image-type <type>', 'Image type')
+    .requiredOption('--image-id <id>', 'Image ID')
+    .requiredOption('--language <lang>', 'Language code')
+    .action(async (options) => {
+        await handleDeleteStoreImage({
+            editId: options.editId,
+            imageType: options.imageType,
+            imageId: options.imageId,
+            language: options.language,
+        });
+    });
+
+images
+    .command('delete-all')
+    .description('Delete all store listing images of a type')
+    .requiredOption('--edit-id <id>', 'Edit session ID')
+    .requiredOption('--image-type <type>', 'Image type')
+    .requiredOption('--language <lang>', 'Language code')
+    .action(async (options) => {
+        await handleDeleteAllStoreImages({
+            editId: options.editId,
+            imageType: options.imageType,
+            language: options.language,
+        });
+    });
+
+images
+    .command('list')
+    .description('List store listing images')
+    .requiredOption('--edit-id <id>', 'Edit session ID')
+    .requiredOption('--image-type <type>', 'Image type')
+    .requiredOption('--language <lang>', 'Language code')
+    .action(async (options) => {
+        await handleListStoreImages({
+            editId: options.editId,
+            imageType: options.imageType,
+            language: options.language,
+        });
+    });
+
+const inapp = program.command('inapp').description('Manage in-app products');
+
+inapp
+    .command('list')
+    .description('List in-app products')
+    .action(async () => {
+        await handleListInAppProducts({});
+    });
+
+const subscriptions = program.command('subscriptions').description('Manage active subscriptions');
+
+subscriptions
+    .command('list')
+    .description('List active subscriptions')
+    .action(async () => {
+        await handleListSubscriptions({});
+    });
+
+program.parseAsync(process.argv);
