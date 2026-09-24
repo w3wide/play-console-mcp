@@ -19,7 +19,14 @@ This file provides specific operational guidelines for Gemini AI agents (includi
 
 ---
 
-## 2. Quick Command Reference
+## 2. Executable Binaries & CLI-First Commands
+
+- **Dual Binaries**: `play-console` (CLI & MCP entrypoint) and `play-console-mcp` (Stdio MCP server alias binary).
+- **CLI-First Syntax**: `play-console <command> <subcommand>` (e.g. `play-console setup`, `play-console reviews list`, `play-console edit create`) or `play-console mcp` for MCP stdio server mode.
+
+---
+
+## 3. Quick Command Reference
 
 ```bash
 # Build project
@@ -35,5 +42,10 @@ npm run lint
 npm run format
 
 # Run setup diagnostic verification
-npm run dev -- --setup
+npm run dev -- setup
+
+# Test CLI commands directly
+node build/index.js setup
+node build/index.js reviews list
+node build/index.js mcp
 ```

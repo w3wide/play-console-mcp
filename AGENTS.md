@@ -53,15 +53,31 @@ Authentication relies on a **Google Cloud Service Account** with access to the t
    - `GOOGLE_APPLICATION_CREDENTIALS`: Path to the service account JSON key file.
    - `DEFAULT_PACKAGE_NAME` (optional): Default Android package name (e.g., `com.example.app`).
 2. **CLI Option**: `--key-file` / `-k` path to key file.
-3. **Diagnostic Check**: Run `node build/index.js --setup` or `npm run dev -- --setup` to verify credentials and scope access.
+3. **Diagnostic Check**: Run `play-console setup` or `npm run dev -- setup` to verify credentials and scope access.
+
+### Dual Executable Binaries
+- `play-console`: Primary CLI entry point supporting direct subcommand execution (`play-console <command> <subcommand>`) as well as starting the MCP server (`play-console mcp`).
+- `play-console-mcp`: Stdio MCP server alias binary.
+
+### CLI-First Usage
+Developers and automated agents can run commands directly without invoking an interactive MCP session:
+```bash
+play-console setup -k /path/to/key.json
+play-console edit create
+play-console tracks list
+play-console reviews list
+play-console reporting crashes
+play-console listing get --language en-US
+play-console mcp
+```
 
 ---
 
 ## 4. Development & Build Commands
 
 - **Build**: `npm run build` (`tsc && chmod +x build/index.js`)
-- **Start**: `npm run start` (`node build/index.js`)
-- **Dev**: `npm run dev` (`ts-node-esm src/index.ts`)
+- **Start MCP**: `npm run start` (`node build/index.js mcp`)
+- **Dev**: `npm run dev -- mcp` (`ts-node-esm src/index.ts mcp`)
 - **Run Tests**: `npm run test` (`node --experimental-vm-modules node_modules/jest/bin/jest.js`)
 - **Lint**: `npm run lint` (`eslint "src/**/*.ts"`)
 - **Format**: `npm run format` (`prettier --write "src/**/*.ts"`)

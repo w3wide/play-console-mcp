@@ -57,7 +57,7 @@ Read-only URI data context sources for AI agents:
 
 Once set up, you can run the built-in configuration helper to check your credentials and connection:
 ```bash
-npx @w3wide/play-console-mcp --key-file /path/to/key.json --package-name com.your.app.package --setup
+play-console setup --key-file /path/to/key.json --package-name com.your.app.package
 ```
 
 ## Configuration
@@ -75,6 +75,44 @@ GOOGLE_SERVICE_ACCOUNT_JSON='{"type": "service_account", ...}'
 DEFAULT_PACKAGE_NAME=com.your.app.id
 ```
 
+## Executable Binaries & CLI Usage
+
+This package provides dual executable binaries:
+- `play-console`: Primary CLI entry point supporting direct subcommand execution (`play-console <command> <subcommand>`) as well as launching the MCP server (`play-console mcp`).
+- `play-console-mcp`: Stdio MCP server alias binary designed for AI agent integration.
+
+### CLI-First Commands
+
+Execute Google Play Console operations directly from your terminal:
+
+```bash
+# Diagnostic setup & connectivity check
+play-console setup -k /path/to/key.json -p com.your.app.id
+
+# Release draft edit sessions & track management
+play-console edit create
+play-console tracks list
+
+# Inspect and respond to user reviews
+play-console reviews list
+play-console reviews reply --review-id <reviewId> --message "Thank you!"
+
+# Query Android Vitals metrics
+play-console reporting crashes
+play-console reporting anrs
+
+# Store listing metadata & monetization catalogs
+play-console listing get --language en-US
+play-console images list --type icon --language en-US
+play-console inapp list
+play-console subscriptions list
+
+# Explicitly start the Stdio MCP Server
+play-console mcp
+# or using the dedicated binary:
+play-console-mcp
+```
+
 ## Getting Started
 
 ### Installation
@@ -84,9 +122,11 @@ npm install
 npm run build
 ```
 
-### Start Server
+### Start MCP Server
 
 ```bash
+play-console mcp
+# or
 npm start
 ```
 
@@ -96,7 +136,7 @@ npm start
 The MCP Inspector is a utility to test MCP servers interactively.
 
 ```bash
-npx @modelcontextprotocol/inspector node build/index.js
+npx @modelcontextprotocol/inspector node build/index.js mcp
 ```
 
 This starts a local web console (typically on `http://localhost:6274`) to list tools, enter arguments, and run requests.
@@ -105,7 +145,7 @@ This starts a local web console (typically on `http://localhost:6274`) to list t
 Send a JSON-RPC tools listing payload to check that the server starts and registers all tools:
 
 ```bash
-echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | node build/index.js
+echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | node build/index.js mcp
 ```
 
 ## Adding to AI Agents
@@ -117,10 +157,10 @@ Run the following command in your terminal:
 
 ```bash
 # Using NPX (Recommended)
-claude mcp add play-console-mcp "npx -y @w3wide/play-console-mcp -k /path/to/key.json -p com.your.app.id"
+claude mcp add play-console-mcp "npx -y @w3wide/play-console-mcp mcp -k /path/to/key.json -p com.your.app.id"
 
 # Using local path
-claude mcp add play-console-mcp "node /absolute/path/to/play-console-mcp/build/index.js"
+claude mcp add play-console-mcp "node /absolute/path/to/play-console-mcp/build/index.js mcp"
 ```
 
 ### 2. Claude Desktop

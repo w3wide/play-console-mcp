@@ -56,11 +56,7 @@ export interface HandleReplyReviewOptions {
     replyText: string;
 }
 
-export async function handleReplyReview({
-    packageName,
-    reviewId,
-    replyText,
-}: HandleReplyReviewOptions): Promise<void> {
+export async function handleReplyReview({ packageName, reviewId, replyText }: HandleReplyReviewOptions): Promise<void> {
     try {
         const pkg = getPackageName(packageName);
         const { publisher } = await getAuth();
