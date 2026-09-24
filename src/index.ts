@@ -67,8 +67,19 @@ program
     .description('Google Play Console CLI & Stdio MCP Server')
     .version(version, '-v, --version', 'Print the version of the MCP server')
     .option('-k, --key-file <pathOrJson>', 'Path to Google Service Account JSON key file or raw JSON content')
-    .option('-p, --package-name <name>', 'Default app package name')
+    .option('-p, --package-name <name>', 'Default app package name (e.g. com.example.app)')
     .option('--mcp', 'Start the Stdio MCP server for Google Play Console')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console setup -k /path/to/service-account.json
+  $ play-console reviews list -p com.example.app
+  $ play-console reporting crash-rate -p com.example.app --start-date 2026-01-01
+  $ play-console edit create -p com.example.app
+  $ play-console mcp
+`
+    )
     .hook('preAction', () => {
         applyGlobalOptions(program.opts());
     })
@@ -79,6 +90,14 @@ program
 program
     .command('mcp')
     .description('Start the Stdio MCP server for Google Play Console')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console mcp
+  $ GOOGLE_SERVICE_ACCOUNT_JSON='{...}' play-console mcp
+`
+    )
     .action(async () => {
         await runMcpServer();
     });
@@ -86,22 +105,58 @@ program
 program
     .command('setup')
     .description('Verify configurations and test connectivity')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console setup -k /path/to/key.json
+  $ play-console setup -p com.example.app
+`
+    )
     .action(async () => {
         await runSetupCommand();
     });
 
-const edit = program.command('edit').description('Manage Play Console draft edit sessions');
+const edit = program
+    .command('edit')
+    .description('Manage Play Console draft edit sessions')
+    .addHelpText(
+        'after',
+        `
+Workflow:
+  1. play-console edit create -p com.example.app
+  2. play-console edit upload-aab --edit-id <ID> --aab-path ./app.aab
+  3. play-console edit assign-track --edit-id <ID> --track production --version-code 100
+  4. play-console edit validate --edit-id <ID>
+  5. play-console edit commit --edit-id <ID>
+`
+    );
 
 edit.command('create')
     .description('Create a new draft edit session')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console edit create -p com.example.app
+  $ play-console edit create -k ./key.json -p com.example.app
+`
+    )
     .action(async () => {
         await handleCreateEdit({});
     });
 
 edit.command('upload-aab')
     .description('Upload an Android App Bundle (.aab)')
-    .requiredOption('--edit-id <id>', 'Edit session ID')
-    .requiredOption('--aab-path <path>', 'Path to .aab file')
+    .requiredOption('--edit-id <id>', 'Edit session ID (returned from `edit create`)')
+    .requiredOption('--aab-path <path>', 'Path to .aab binary file')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console edit upload-aab --edit-id 123456789 --aab-path ./build/app-release.aab
+`
+    )
     .action(async (options) => {
         await handleUploadAab({ editId: options.editId, aabPath: options.aabPath });
     });
@@ -110,9 +165,17 @@ edit.command('assign-track')
     .description('Assign version code to a release track')
     .requiredOption('--edit-id <id>', 'Edit session ID')
     .requiredOption('--track <name>', 'Track name (production, beta, alpha, internal)')
-    .requiredOption('--version-code <codeOrNumber>', 'Version code')
-    .option('--user-fraction <fraction>', 'User fraction for staged rollout')
+    .requiredOption('--version-code <codeOrNumber>', 'Version code (numeric integer)')
+    .option('--user-fraction <fraction>', 'User fraction for staged rollout (e.g., 0.1 for 10%)')
     .option('--status <status>', 'Release status (completed, draft, halted, inProgress)', 'completed')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console edit assign-track --edit-id 123456789 --track production --version-code 105
+  $ play-console edit assign-track --edit-id 123456789 --track beta --version-code 105 --user-fraction 0.2 --status inProgress
+`
+    )
     .action(async (options) => {
         await handleAssignTrack({
             editId: options.editId,
@@ -126,6 +189,13 @@ edit.command('assign-track')
 edit.command('validate')
     .description('Validate a draft edit session')
     .requiredOption('--edit-id <id>', 'Edit session ID')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console edit validate --edit-id 123456789
+`
+    )
     .action(async (options) => {
         await handleValidateEdit({ editId: options.editId });
     });
@@ -133,16 +203,40 @@ edit.command('validate')
 edit.command('commit')
     .description('Commit a draft edit session')
     .requiredOption('--edit-id <id>', 'Edit session ID')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console edit commit --edit-id 123456789
+`
+    )
     .action(async (options) => {
         await handleCommitEdit({ editId: options.editId });
     });
 
-const tracks = program.command('tracks').description('Manage release tracks');
+const tracks = program
+    .command('tracks')
+    .description('Manage release tracks')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console tracks list --edit-id 123456789
+  $ play-console tracks get --edit-id 123456789 --track production
+`
+    );
 
 tracks
     .command('list')
     .description('List all release tracks in active edit session')
     .requiredOption('--edit-id <id>', 'Edit session ID')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console tracks list --edit-id 123456789
+`
+    )
     .action(async (options) => {
         await handleListTracks({ editId: options.editId });
     });
@@ -151,19 +245,45 @@ tracks
     .command('get')
     .description('Get details for a specific release track')
     .requiredOption('--edit-id <id>', 'Edit session ID')
-    .requiredOption('--track <name>', 'Track name')
+    .requiredOption('--track <name>', 'Track name (production, beta, alpha, internal)')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console tracks get --edit-id 123456789 --track production
+`
+    )
     .action(async (options) => {
         await handleGetTrack({ editId: options.editId, track: options.track });
     });
 
-const reviews = program.command('reviews').description('Inspect and reply to user reviews');
+const reviews = program
+    .command('reviews')
+    .description('Inspect and reply to user reviews')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console reviews list -p com.example.app --max-results 10
+  $ play-console reviews get --review-id gp:AOqpTOE... -p com.example.app
+  $ play-console reviews reply --review-id gp:AOqpTOE... --reply-text "Thank you for your feedback!"
+`
+    );
 
 reviews
     .command('list')
     .description('List recent user reviews')
-    .option('--max-results <number>', 'Maximum results')
-    .option('--start-index <number>', 'Start index')
+    .option('--max-results <number>', 'Maximum results (default: 100)')
+    .option('--start-index <number>', 'Start index for pagination')
     .option('--token <token>', 'Pagination token')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console reviews list -p com.example.app
+  $ play-console reviews list -p com.example.app --max-results 20
+`
+    )
     .action(async (options) => {
         await handleListReviews({
             maxResults: options.maxResults ? parseInt(options.maxResults, 10) : undefined,
@@ -176,6 +296,13 @@ reviews
     .command('get')
     .description('Get specific review by ID')
     .requiredOption('--review-id <id>', 'Review ID')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console reviews get --review-id gp:AOqpTOE... -p com.example.app
+`
+    )
     .action(async (options) => {
         await handleGetReview({ reviewId: options.reviewId });
     });
@@ -185,17 +312,41 @@ reviews
     .description('Reply to a user review')
     .requiredOption('--review-id <id>', 'Review ID')
     .requiredOption('--reply-text <text>', 'Reply text (max 350 chars)')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console reviews reply --review-id gp:AOqpTOE... --reply-text "Thanks for your feedback! We fixed this in v2.0."
+`
+    )
     .action(async (options) => {
         await handleReplyReview({ reviewId: options.reviewId, replyText: options.replyText });
     });
 
-const reporting = program.command('reporting').description('Query Android Vitals reporting metrics');
+const reporting = program
+    .command('reporting')
+    .description('Query Android Vitals reporting metrics')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console reporting crash-rate -p com.example.app --start-date 2026-01-01 --end-date 2026-01-31
+  $ play-console reporting anr-rate -p com.example.app --start-date 2026-01-01
+`
+    );
 
 reporting
     .command('crash-rate')
     .description('Query daily crash rate metrics')
-    .option('--start-date <YYYY-MM-DD>', 'Start date')
-    .option('--end-date <YYYY-MM-DD>', 'End date')
+    .option('--start-date <YYYY-MM-DD>', 'Start date (YYYY-MM-DD)')
+    .option('--end-date <YYYY-MM-DD>', 'End date (YYYY-MM-DD)')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console reporting crash-rate -p com.example.app --start-date 2026-01-01 --end-date 2026-01-31
+`
+    )
     .action(async (options) => {
         await handleQueryCrashRate({ startDate: options.startDate, endDate: options.endDate });
     });
@@ -203,19 +354,44 @@ reporting
 reporting
     .command('anr-rate')
     .description('Query daily ANR rate metrics')
-    .option('--start-date <YYYY-MM-DD>', 'Start date')
-    .option('--end-date <YYYY-MM-DD>', 'End date')
+    .option('--start-date <YYYY-MM-DD>', 'Start date (YYYY-MM-DD)')
+    .option('--end-date <YYYY-MM-DD>', 'End date (YYYY-MM-DD)')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console reporting anr-rate -p com.example.app --start-date 2026-01-01 --end-date 2026-01-31
+`
+    )
     .action(async (options) => {
         await handleQueryAnrRate({ startDate: options.startDate, endDate: options.endDate });
     });
 
-const listing = program.command('listing').description('Manage store listings');
+const listing = program
+    .command('listing')
+    .description('Manage store listings')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console listing get --edit-id 123456789 --language en-US
+  $ play-console listing update --edit-id 123456789 --language en-US --title "My App"
+  $ play-console listing list-all --edit-id 123456789
+`
+    );
 
 listing
     .command('get')
     .description('Get store listing for a language')
     .requiredOption('--edit-id <id>', 'Edit session ID')
-    .requiredOption('--language <lang>', 'Language code')
+    .requiredOption('--language <lang>', 'Language code (e.g., en-US)')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console listing get --edit-id 123456789 --language en-US
+`
+    )
     .action(async (options) => {
         await handleGetStoreListing({ editId: options.editId, language: options.language });
     });
@@ -224,10 +400,17 @@ listing
     .command('update')
     .description('Update store listing text')
     .requiredOption('--edit-id <id>', 'Edit session ID')
-    .requiredOption('--language <lang>', 'Language code')
-    .option('--title <title>', 'App title')
-    .option('--short-description <desc>', 'Short description')
-    .option('--full-description <desc>', 'Full description')
+    .requiredOption('--language <lang>', 'Language code (e.g., en-US)')
+    .option('--title <title>', 'App title (max 50 chars)')
+    .option('--short-description <desc>', 'Short description (max 80 chars)')
+    .option('--full-description <desc>', 'Full description (max 4000 chars)')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console listing update --edit-id 123456789 --language en-US --title "New App Name" --short-description "Best utility app"
+`
+    )
     .action(async (options) => {
         await handleUpdateStoreListing({
             editId: options.editId,
@@ -242,19 +425,47 @@ listing
     .command('list-all')
     .description('List all store listings for edit session')
     .requiredOption('--edit-id <id>', 'Edit session ID')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console listing list-all --edit-id 123456789
+`
+    )
     .action(async (options) => {
         await handleListAllListings({ editId: options.editId });
     });
 
-const images = program.command('images').description('Manage store listing images');
+const images = program
+    .command('images')
+    .description('Manage store listing images')
+    .addHelpText(
+        'after',
+        `
+Image Types:
+  icon, featureGraphic, phoneScreenshots, sevenInchScreenshots, tenInchScreenshots, tvScreenshots, wearScreenshots
+
+Examples:
+  $ play-console images list --edit-id 123456789 --image-type icon --language en-US
+  $ play-console images upload --edit-id 123456789 --image-type icon --image-path ./icon.png --language en-US
+`
+    );
 
 images
     .command('upload')
-    .description('Upload store listing image')
+    .description('Upload a store image asset')
     .requiredOption('--edit-id <id>', 'Edit session ID')
     .requiredOption('--image-type <type>', 'Image type (icon, featureGraphic, phoneScreenshots, etc.)')
-    .requiredOption('--image-path <path>', 'Path to image file')
-    .requiredOption('--language <lang>', 'Language code')
+    .requiredOption('--image-path <path>', 'Path to image file (.png or .jpg)')
+    .option('--language <lang>', 'Language code', 'en-US')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console images upload --edit-id 123456789 --image-type icon --image-path ./icon.png --language en-US
+  $ play-console images upload --edit-id 123456789 --image-type phoneScreenshots --image-path ./screen1.png
+`
+    )
     .action(async (options) => {
         await handleUploadStoreImage({
             editId: options.editId,
@@ -266,11 +477,18 @@ images
 
 images
     .command('delete')
-    .description('Delete a store listing image')
+    .description('Delete a specific store image by ID')
     .requiredOption('--edit-id <id>', 'Edit session ID')
     .requiredOption('--image-type <type>', 'Image type')
-    .requiredOption('--image-id <id>', 'Image ID')
-    .requiredOption('--language <lang>', 'Language code')
+    .requiredOption('--image-id <id>', 'Image ID to delete')
+    .option('--language <lang>', 'Language code', 'en-US')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console images delete --edit-id 123456789 --image-type phoneScreenshots --image-id img_12345 --language en-US
+`
+    )
     .action(async (options) => {
         await handleDeleteStoreImage({
             editId: options.editId,
@@ -282,10 +500,17 @@ images
 
 images
     .command('delete-all')
-    .description('Delete all store listing images of a type')
+    .description('Delete all store images for a specific type')
     .requiredOption('--edit-id <id>', 'Edit session ID')
     .requiredOption('--image-type <type>', 'Image type')
-    .requiredOption('--language <lang>', 'Language code')
+    .option('--language <lang>', 'Language code', 'en-US')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console images delete-all --edit-id 123456789 --image-type phoneScreenshots --language en-US
+`
+    )
     .action(async (options) => {
         await handleDeleteAllStoreImages({
             editId: options.editId,
@@ -296,10 +521,17 @@ images
 
 images
     .command('list')
-    .description('List store listing images')
+    .description('List store images for a specific type')
     .requiredOption('--edit-id <id>', 'Edit session ID')
     .requiredOption('--image-type <type>', 'Image type')
-    .requiredOption('--language <lang>', 'Language code')
+    .option('--language <lang>', 'Language code', 'en-US')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console images list --edit-id 123456789 --image-type phoneScreenshots --language en-US
+`
+    )
     .action(async (options) => {
         await handleListStoreImages({
             editId: options.editId,
@@ -308,22 +540,57 @@ images
         });
     });
 
-const inapp = program.command('inapp').description('Manage in-app products');
+const inapp = program
+    .command('inapp')
+    .description('Manage in-app products')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console inapp list -p com.example.app
+`
+    );
 
 inapp
     .command('list')
     .description('List in-app products')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console inapp list -p com.example.app
+`
+    )
     .action(async () => {
         await handleListInAppProducts({});
     });
 
-const subscriptions = program.command('subscriptions').description('Manage active subscriptions');
+const subscriptions = program
+    .command('subscriptions')
+    .description('Manage active subscriptions')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console subscriptions list -p com.example.app
+`
+    );
 
 subscriptions
     .command('list')
-    .description('List active subscriptions')
+    .description('List active subscriptions catalog')
+    .addHelpText(
+        'after',
+        `
+Examples:
+  $ play-console subscriptions list -p com.example.app
+`
+    )
     .action(async () => {
         await handleListSubscriptions({});
     });
 
-program.parseAsync(process.argv);
+program.parseAsync(process.argv).catch((err) => {
+    console.error(`Error: ${err.message}`);
+    process.exit(1);
+});
