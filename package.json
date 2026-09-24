@@ -1,7 +1,7 @@
 {
   "name": "@w3wide/play-console-mcp",
   "version": "2.0.0",
-  "description": "MCP server for Google Play Console — manage app releases, reply to reviews, query Android Vitals (crashes/ANRs), update store listings, upload screenshots, and manage release tracks from any AI agent (Claude, Cursor, Copilot).",
+  "description": "Google Play Console CLI & Stdio MCP Server — manage app releases, reply to reviews, query Android Vitals (crashes/ANRs), update store listings, upload screenshots, and manage release tracks.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "type": "module",
@@ -19,6 +19,8 @@
     "url": "https://github.com/w3wide/play-console-mcp/issues"
   },
   "keywords": [
+    "cli",
+    "play-console-cli",
     "mcp",
     "model-context-protocol",
     "google-play",
@@ -48,6 +50,7 @@
   },
   "bin": {
     "play-console": "build/index.js",
+    "play-console-cli": "build/index.js",
     "play-console-mcp": "build/index.js"
   },
   "files": [
