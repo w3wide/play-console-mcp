@@ -47,6 +47,7 @@
     "node": ">=18.0.0"
   },
   "bin": {
+    "play-console": "build/index.js",
     "play-console-mcp": "build/index.js"
   },
   "files": [
@@ -68,6 +69,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "^0.1.0",
+    "commander": "^13.0.0",
     "dotenv": "^16.4.5",
     "google-auth-library": "^9.15.0",
     "googleapis": "^173.0.0",
