@@ -6,6 +6,8 @@ describe('CLI Integration Tests', () => {
         const expectedSubcommands = [
             'mcp',
             'setup',
+            'doctor',
+            'config',
             'edit',
             'reviews',
             'reporting',

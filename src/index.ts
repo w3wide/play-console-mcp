@@ -6,7 +6,6 @@ import * as path from 'path';
 import { createRequire } from 'module';
 
 import { runMcpServer } from './cli/mcp.js';
-import { runSetupCommand } from './cli/setup.js';
 import {
     handleCreateEdit,
     handleUploadAab,
@@ -92,25 +91,76 @@ Examples:
   $ play-console mcp
 `
     )
-    .action(async () => {
-        await runMcpServer();
-    });
+;
+
+import { runInteractiveSetup } from './cli/setup.js';
+import { runDoctorCommand } from './cli/doctor.js';
+import { handleConfigShow, handleConfigGet, handleConfigSet, handleConfigUnset } from './cli/config.js';
 
 withGlobalOptions(
     program
         .command('setup')
-        .description('Verify configurations and test connectivity')
+        .description('Run interactive wizard to configure credentials and default package name')
         .addHelpText(
             'after',
             `
 Examples:
-  $ play-console setup -k /path/to/key.json
-  $ play-console setup -p com.example.app -k /path/to/key.json
+  $ play-console setup
 `
         )
 ).action(async () => {
-    await runSetupCommand();
+    await runInteractiveSetup();
 });
+
+withGlobalOptions(
+    program
+        .command('doctor')
+        .description('Run diagnostic checks on configuration, key file, and API scopes')
+        .addHelpText(
+            'after',
+            `
+Examples:
+  $ play-console doctor
+  $ play-console doctor -k /path/to/key.json -p com.example.app
+`
+        )
+).action(async () => {
+    await runDoctorCommand();
+});
+
+const configCmd = program.command('config').description('View or edit persistent configuration settings');
+
+configCmd
+    .command('show')
+    .description('Display saved configuration file and settings')
+    .action(() => {
+        handleConfigShow();
+    });
+
+configCmd
+    .command('get')
+    .argument('<key>', 'Config key to fetch (keyFile | packageName)')
+    .description('Get value for a config key')
+    .action((key) => {
+        handleConfigGet(key);
+    });
+
+configCmd
+    .command('set')
+    .argument('<key>', 'Config key to set (keyFile | packageName)')
+    .argument('<value>', 'Value to store')
+    .description('Set value for a config key')
+    .action((key, value) => {
+        handleConfigSet(key, value);
+    });
+
+configCmd
+    .command('unset')
+    .argument('<key>', 'Config key to remove')
+    .description('Unset a config key')
+    .action((key) => {
+        handleConfigUnset(key);
+    });
 
 withGlobalOptions(
     program
@@ -627,7 +677,19 @@ Examples:
     await handleListSubscriptions({});
 });
 
-program.parseAsync(process.argv).catch((err) => {
-    console.error(`Error: ${err.message}`);
-    process.exit(1);
-});
+const args = process.argv.slice(2);
+const isMcpBinary = process.argv[1]?.endsWith('play-console-mcp');
+const hasMcpFlag = args.includes('--mcp');
+
+if (isMcpBinary || hasMcpFlag || (args.length === 0 && !process.stdin.isTTY)) {
+    applyGlobalOptions(program.opts());
+    runMcpServer().catch((err) => {
+        console.error(`MCP Server Error: ${err.message}`);
+        process.exit(1);
+    });
+} else {
+    program.parseAsync(process.argv).catch((err) => {
+        console.error(`Error: ${err.message}`);
+        process.exit(1);
+    });
+}

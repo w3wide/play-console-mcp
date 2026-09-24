@@ -8,11 +8,33 @@ const SCOPES = [
     'https://www.googleapis.com/auth/playdeveloperreporting',
 ];
 
+import { getConfigValue } from './config.js';
+import * as fs from 'fs';
+import * as path from 'path';
+
 /**
- * Gets a Google Auth client based on environment variables.
+ * Gets a Google Auth client based on environment variables or persistent config.
  */
 export async function getAuth() {
-    const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+    let serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+
+    if (!serviceAccountJson && !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+        const savedKeyFile = getConfigValue('keyFile');
+        if (savedKeyFile) {
+            if (savedKeyFile.trim().startsWith('{')) {
+                serviceAccountJson = savedKeyFile;
+            } else {
+                try {
+                    const resolved = path.resolve(savedKeyFile);
+                    if (fs.existsSync(resolved)) {
+                        serviceAccountJson = fs.readFileSync(resolved, 'utf8');
+                    }
+                } catch {
+                    // Ignore read errors, will fall back to default GoogleAuth
+                }
+            }
+        }
+    }
 
     let auth: any;
 

@@ -53,7 +53,9 @@ Authentication relies on a **Google Cloud Service Account** with access to the t
    - `GOOGLE_APPLICATION_CREDENTIALS`: Path to the service account JSON key file.
    - `DEFAULT_PACKAGE_NAME` (optional): Default Android package name (e.g., `com.example.app`).
 2. **CLI Option**: `--key-file` / `-k` path to key file.
-3. **Diagnostic Check**: Run `play-console setup` or `npm run dev -- setup` to verify credentials and scope access.
+3. **Interactive Setup Wizard**: Run `play-console setup` to configure key file and default package name permanently in `~/.config/play-console/config.json`.
+4. **Diagnostic Doctor Check**: Run `play-console doctor` to verify credentials, key file, and scope access.
+5. **Configuration Management**: Run `play-console config <show|set|get|unset>` to manage saved settings.
 
 ### Dual Executable Binaries
 - `play-console`: Primary CLI entry point supporting direct subcommand execution (`play-console <command> <subcommand>`) as well as starting the MCP server (`play-console mcp`).
@@ -62,7 +64,9 @@ Authentication relies on a **Google Cloud Service Account** with access to the t
 ### CLI-First Usage
 Developers and automated agents can run commands directly without invoking an interactive MCP session:
 ```bash
-play-console setup -k /path/to/key.json
+play-console setup
+play-console doctor
+play-console config show
 play-console edit create
 play-console tracks list
 play-console reviews list

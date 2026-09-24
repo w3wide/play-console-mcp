@@ -1,13 +1,15 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
+import { getConfigValue } from './config.js';
+
 /**
- * Gets the package name from user input or environment variable.
+ * Gets the package name from user input, environment variable, or persistent config.
  */
 export const getPackageName = (pkgName?: string) => {
-    const finalPkg = pkgName || process.env.DEFAULT_PACKAGE_NAME;
+    const finalPkg = pkgName || process.env.DEFAULT_PACKAGE_NAME || getConfigValue('packageName');
     if (!finalPkg) {
-        throw new Error('Package name is required. Set it in DEFAULT_PACKAGE_NAME or pass it as an argument.');
+        throw new Error('Package name is required. Set it in DEFAULT_PACKAGE_NAME, run "play-console setup", or pass it as an argument.');
     }
     return finalPkg;
 };
