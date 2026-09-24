@@ -1,7 +1,18 @@
-import * as dotenv from 'dotenv';
-dotenv.config();
-
+import * as path from 'path';
+import * as os from 'os';
 import { getConfigValue } from './config.js';
+
+/**
+ * Expands paths starting with ~ to the user's home directory.
+ */
+export const expandPath = (filePath: string): string => {
+    if (!filePath) return filePath;
+    const trimmed = filePath.trim();
+    if (trimmed.startsWith('~')) {
+        return path.join(os.homedir(), trimmed.slice(1));
+    }
+    return path.resolve(trimmed);
+};
 
 /**
  * Gets the package name from user input, environment variable, or persistent config.

@@ -2,6 +2,7 @@ import * as readline from 'readline';
 import * as fs from 'fs';
 import * as path from 'path';
 import { loadConfig, saveConfig, getConfigPath } from '../config.js';
+import { expandPath } from '../utils.js';
 import { runDoctorCommand } from './doctor.js';
 
 export async function runInteractiveSetup() {
@@ -21,21 +22,37 @@ export async function runInteractiveSetup() {
     try {
         console.log(`Config file path: ${configPath}\n`);
 
+        let selectedKey = '';
         const currentKey = config.keyFile || process.env.GOOGLE_APPLICATION_CREDENTIALS || '';
-        const keyInput = await ask(
-            `1. Enter path to Service Account JSON Key File${currentKey ? ` [Default: ${currentKey}]` : ''}: `
-        );
-        const selectedKey = keyInput.trim() || currentKey;
+
+        while (true) {
+            const keyInput = await ask(
+                `1. Enter path to Service Account JSON Key File${currentKey ? ` [Default: ${currentKey}]` : ''}: `
+            );
+            const inputStr = keyInput.trim() || currentKey;
+
+            if (!inputStr) {
+                break; // User skipped setting keyFile
+            }
+
+            if (inputStr.startsWith('{')) {
+                selectedKey = inputStr;
+                console.log(`   [SUCCESS] Validated raw JSON credentials input.`);
+                break;
+            }
+
+            const expanded = expandPath(inputStr);
+            if (fs.existsSync(expanded) && fs.statSync(expanded).isFile()) {
+                selectedKey = expanded;
+                console.log(`   [SUCCESS] Validated key file at ${expanded}`);
+                break;
+            } else {
+                console.log(`   [ERROR] Key file not found at path: ${expanded}`);
+                console.log(`   Please verify the path and try again.\n`);
+            }
+        }
 
         if (selectedKey) {
-            if (!selectedKey.startsWith('{')) {
-                const resolved = path.resolve(selectedKey);
-                if (!fs.existsSync(resolved)) {
-                    console.log(`   [WARNING] Key file does not exist at ${resolved}. Saving anyway.`);
-                } else {
-                    console.log(`   [SUCCESS] Validated file location: ${resolved}`);
-                }
-            }
             config.keyFile = selectedKey;
         }
 

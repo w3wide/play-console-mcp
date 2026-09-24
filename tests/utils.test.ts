@@ -1,4 +1,6 @@
-import { getPackageName, wrapError, wrapJson, wrapText } from '../src/utils.js';
+import { getPackageName, expandPath, wrapError, wrapJson, wrapText } from '../src/utils.js';
+import * as os from 'os';
+import * as path from 'path';
 
 describe('Utils', () => {
     const originalEnv = process.env;
@@ -9,6 +11,18 @@ describe('Utils', () => {
 
     afterAll(() => {
         process.env = originalEnv;
+    });
+
+    describe('expandPath', () => {
+        it('should expand ~ to the user home directory', () => {
+            const result = expandPath('~/.config/test.json');
+            expect(result).toBe(path.join(os.homedir(), '.config/test.json'));
+        });
+
+        it('should resolve standard relative paths', () => {
+            const result = expandPath('./relative/path.json');
+            expect(result).toBe(path.resolve('./relative/path.json'));
+        });
     });
 
     describe('getPackageName', () => {

@@ -9,6 +9,7 @@ const SCOPES = [
 ];
 
 import { getConfigValue } from './config.js';
+import { expandPath } from './utils.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -25,7 +26,7 @@ export async function getAuth() {
                 serviceAccountJson = savedKeyFile;
             } else {
                 try {
-                    const resolved = path.resolve(savedKeyFile);
+                    const resolved = expandPath(savedKeyFile);
                     if (fs.existsSync(resolved)) {
                         serviceAccountJson = fs.readFileSync(resolved, 'utf8');
                     }

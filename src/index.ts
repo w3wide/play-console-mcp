@@ -6,6 +6,7 @@ import * as path from 'path';
 import { createRequire } from 'module';
 
 import { runMcpServer } from './cli/mcp.js';
+import { expandPath } from './utils.js';
 import {
     handleCreateEdit,
     handleUploadAab,
@@ -41,7 +42,7 @@ function applyGlobalOptions(opts: { keyFile?: string; packageName?: string }) {
             process.env.GOOGLE_SERVICE_ACCOUNT_JSON = val;
         } else {
             try {
-                const absolutePath = path.resolve(val);
+                const absolutePath = expandPath(val);
                 if (!fs.existsSync(absolutePath)) {
                     console.error(`Error: Key file not found at ${absolutePath}`);
                     process.exit(1);

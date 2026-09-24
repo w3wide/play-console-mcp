@@ -1,5 +1,6 @@
 import { getAuth } from '../auth.js';
 import { loadConfig, getConfigPath } from '../config.js';
+import { expandPath } from '../utils.js';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -35,7 +36,7 @@ export async function runDoctorCommand() {
         }
     } else if (keyFilePath) {
         try {
-            const resolvedPath = path.resolve(keyFilePath);
+            const resolvedPath = expandPath(keyFilePath);
             if (fs.existsSync(resolvedPath)) {
                 const raw = fs.readFileSync(resolvedPath, 'utf8');
                 const credentials = JSON.parse(raw);
