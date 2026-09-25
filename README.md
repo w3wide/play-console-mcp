@@ -4,6 +4,43 @@ A Model Context Protocol (MCP) server for Google Play Console API integration. T
 
 Built with the TypeScript MCP SDK and the Google Play Developer APIs.
 
+## Installation
+
+### Global Installation (Recommended for CLI & MCP)
+```bash
+npm install -g @w3wide/play-console-mcp
+```
+
+### Local / Development Setup
+```bash
+git clone https://github.com/w3wide/play-console-mcp.git
+cd play-console-mcp
+npm install
+npm run build
+```
+
+## Quick Start & Setup Wizard
+
+Once installed, run the interactive setup wizard to configure your credentials:
+
+```bash
+play-console setup
+```
+
+Run diagnostic doctor check to verify connection:
+
+```bash
+play-console doctor
+```
+
+## Prerequisites
+
+1. **Google Cloud Project**: Enable the following APIs:
+   * Google Play Developer API
+   * Google Play Developer Reporting API
+2. **Service Account**: Create a service account, download its JSON key file, and link it in the Google Play Console under **Users and permissions**.
+   * 👉 For step-by-step instructions on setting up credentials, scopes, and Play Store permissions, see [SETUP_GUIDE.md](SETUP_GUIDE.md).
+
 ## Features and Tools
 
 Available tools are grouped by function:
@@ -47,22 +84,9 @@ Read-only URI data context sources for AI agents:
 * `playconsole://apps/{packageName}/listings/{language}`: Read localized store listing title and descriptions.
 * `playconsole://apps/{packageName}/inapp-products`: Fetch configured in-app products catalog data.
 
-## Prerequisites
-
-1. **Google Cloud Project**: Enable the following APIs:
-   * Google Play Developer API
-   * Google Play Developer Reporting API
-2. **Service Account**: Create a service account, download its JSON key file, and link it in the Google Play Console under **Users and permissions**.
-   * 👉 For step-by-step instructions on setting up credentials, scopes, and Play Store permissions, see [SETUP_GUIDE.md](SETUP_GUIDE.md).
-
-Once set up, you can run the built-in configuration helper to check your credentials and connection:
-```bash
-play-console setup --key-file /path/to/key.json --package-name com.your.app.package
-```
-
 ## Configuration
 
-You can configure the server using environment variables, a `.env` file, or command-line arguments.
+You can configure the server using environment variables, a `.env` file, command-line arguments, or saved config.
 
 ```env
 # Path to the Google Service Account JSON key file
@@ -115,23 +139,6 @@ play-console subscriptions list
 play-console mcp
 # or using the dedicated binary:
 play-console-mcp
-```
-
-## Getting Started
-
-### Installation
-
-```bash
-npm install
-npm run build
-```
-
-### Start MCP Server
-
-```bash
-play-console mcp
-# or
-npm start
 ```
 
 ## Testing
