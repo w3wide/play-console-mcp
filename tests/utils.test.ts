@@ -1,4 +1,5 @@
 import { getPackageName, expandPath, wrapError, wrapJson, wrapText } from '../src/utils.js';
+import { jest } from '@jest/globals';
 import * as os from 'os';
 import * as path from 'path';
 
