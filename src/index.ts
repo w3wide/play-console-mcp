@@ -179,6 +179,24 @@ Examples:
     await runMcpServer();
 });
 
+import { runReleaseWizard } from './cli/wizard.js';
+
+withGlobalOptions(
+    program
+        .command('wizard')
+        .description('Run interactive step-by-step wizard to publish an app release')
+        .addHelpText(
+            'after',
+            `
+Examples:
+  $ play-console wizard
+  $ play-console wizard -p com.example.app
+`
+        )
+).action(async (options) => {
+    await runReleaseWizard({ packageName: options.packageName });
+});
+
 const edit = program
     .command('edit')
     .description('Manage Play Console draft edit sessions')
@@ -186,13 +204,31 @@ const edit = program
         'after',
         `
 Workflow:
-  1. play-console edit create -p com.example.app
-  2. play-console edit upload-aab --edit-id <ID> --aab-path ./app.aab
-  3. play-console edit assign-track --edit-id <ID> --track production --version-code 100
-  4. play-console edit validate --edit-id <ID>
-  5. play-console edit commit --edit-id <ID>
+  Interactive: play-console edit wizard
+  Manual:
+    1. play-console edit create -p com.example.app
+    2. play-console edit upload-aab --edit-id <ID> --aab-path ./app.aab
+    3. play-console edit assign-track --edit-id <ID> --track production --version-code 100
+    4. play-console edit validate --edit-id <ID>
+    5. play-console edit commit --edit-id <ID>
 `
     );
+
+withGlobalOptions(
+    edit
+        .command('wizard')
+        .description('Run interactive step-by-step wizard to publish an app release')
+        .addHelpText(
+            'after',
+            `
+Examples:
+  $ play-console edit wizard
+  $ play-console edit wizard -p com.example.app
+`
+        )
+).action(async (options) => {
+    await runReleaseWizard({ packageName: options.packageName });
+});
 
 withGlobalOptions(
     edit

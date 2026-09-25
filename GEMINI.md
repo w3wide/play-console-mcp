@@ -41,11 +41,19 @@ npm run lint
 # Format codebase with Prettier
 npm run format
 
-# Run setup diagnostic verification
+# Run interactive setup wizard
 npm run dev -- setup
+
+# Run interactive release wizard
+npm run dev -- wizard
+
+# Run diagnostic health check
+npm run dev -- doctor
 
 # Test CLI commands directly
 node build/index.js setup
+node build/index.js wizard
+node build/index.js doctor
 node build/index.js reviews list
 node build/index.js mcp
 ```

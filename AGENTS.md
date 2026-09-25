@@ -65,12 +65,13 @@ Authentication relies on a **Google Cloud Service Account** with access to the t
 Developers and automated agents can run commands directly without invoking an interactive MCP session:
 ```bash
 play-console setup
+play-console wizard
 play-console doctor
 play-console config show
 play-console edit create
 play-console tracks list
 play-console reviews list
-play-console reporting crashes
+play-console reporting crash-rate
 play-console listing get --language en-US
 play-console mcp
 ```

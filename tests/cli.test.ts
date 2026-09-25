@@ -8,6 +8,7 @@ describe('CLI Integration Tests', () => {
             'setup',
             'doctor',
             'config',
+            'wizard',
             'edit',
             'reviews',
             'reporting',
@@ -26,5 +27,11 @@ describe('CLI Integration Tests', () => {
         const output = execSync('node build/index.js mcp --help').toString();
         expect(output).toContain('Usage: play-console mcp');
         expect(output).toContain('Start the Stdio MCP server for Google Play Console');
+    });
+
+    it('should display help for wizard subcommand', () => {
+        const output = execSync('node build/index.js wizard --help').toString();
+        expect(output).toContain('Usage: play-console wizard');
+        expect(output).toContain('Run interactive step-by-step wizard to publish an app release');
     });
 });

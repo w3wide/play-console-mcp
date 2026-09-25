@@ -86,24 +86,28 @@ This package provides dual executable binaries:
 Execute Google Play Console operations directly from your terminal:
 
 ```bash
-# Diagnostic setup & connectivity check
-play-console setup -k /path/to/key.json -p com.your.app.id
+# 1. Interactive Setup Wizard (configures & saves to ~/.config/play-console/config.json)
+play-console setup
 
-# Release draft edit sessions & track management
+# 2. Interactive Release Wizard (guided step-by-step AAB upload & publishing)
+play-console wizard
+# or
+play-console edit wizard
+
+# 3. Diagnostic Doctor Check (tests key file, package name & API scopes)
+play-console doctor
+
+# 4. View or edit persistent configuration
+play-console config show
+play-console config set packageName com.your.app.id
+
+# 5. Direct CLI Operations (Flagless execution once setup is complete)
+play-console reviews list
+play-console reporting crash-rate
 play-console edit create
 play-console tracks list
-
-# Inspect and respond to user reviews
-play-console reviews list
-play-console reviews reply --review-id <reviewId> --message "Thank you!"
-
-# Query Android Vitals metrics
-play-console reporting crashes
-play-console reporting anrs
-
-# Store listing metadata & monetization catalogs
 play-console listing get --language en-US
-play-console images list --type icon --language en-US
+play-console images list --image-type icon --language en-US
 play-console inapp list
 play-console subscriptions list
 
