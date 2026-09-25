@@ -35,15 +35,14 @@ describe('Utils', () => {
             expect(getPackageName()).toBe('com.env.app');
         });
 
-        it('should throw an error if no package name is configured', () => {
+        it('should throw an error if no package name is configured', async () => {
             delete process.env.DEFAULT_PACKAGE_NAME;
-            const configModule = require('../src/config.js');
-            const originalGetConfigValue = configModule.getConfigValue;
-            configModule.getConfigValue = () => undefined;
+            const configModule = await import('../src/config.js');
+            const spy = jest.spyOn(configModule, 'getConfigValue').mockReturnValue(undefined as any);
             try {
                 expect(() => getPackageName()).toThrow();
             } finally {
-                configModule.getConfigValue = originalGetConfigValue;
+                spy.mockRestore();
             }
         });
     });
