@@ -1,6 +1,6 @@
 {
   "name": "@w3wide/play-console-mcp",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Google Play Console CLI & Stdio MCP Server — manage app releases, reply to reviews, query Android Vitals (crashes/ANRs), update store listings, upload screenshots, and manage release tracks.",
   "main": "build/index.js",
   "types": "build/index.d.ts",

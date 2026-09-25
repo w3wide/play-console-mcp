@@ -37,7 +37,14 @@ describe('Utils', () => {
 
         it('should throw an error if no package name is configured', () => {
             delete process.env.DEFAULT_PACKAGE_NAME;
-            expect(() => getPackageName()).toThrow();
+            const configModule = require('../src/config.js');
+            const originalGetConfigValue = configModule.getConfigValue;
+            configModule.getConfigValue = () => undefined;
+            try {
+                expect(() => getPackageName()).toThrow();
+            } finally {
+                configModule.getConfigValue = originalGetConfigValue;
+            }
         });
     });
 
